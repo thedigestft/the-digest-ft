@@ -90,7 +90,7 @@
     </div>
     <div id="feed-tab">
       <div class="metrics">
-        <div class="metric"><div class="metric-val">6</div><div class="metric-label">Stories today</div></div>
+        <div class="metric"><div class="metric-val" id="m-stories">0</div><div class="metric-label">Stories today</div></div>
         <div class="metric"><div class="metric-val" id="m-tweets">0</div><div class="metric-label">Tweets ready</div></div>
         <div class="metric"><div class="metric-val" id="m-briefs">0</div><div class="metric-label">Briefs written</div></div>
       </div>
@@ -111,7 +111,10 @@
 <script>
   document.getElementById('todays-date').textContent = new Date().toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
 
-  const STORIES = [
+  // Story cache — avoids all HTML escaping issues with apostrophes etc.
+  var _stories = {};
+
+  const DEMO_STORIES = [
     { tag:"Markets", title:"S&P 500 falls 2.1% amid fresh tariff fears as trade war uncertainty rattles investors", url:"https://ft.com", topic:"Markets" },
     { tag:"Central banks", title:"Federal Reserve signals two rate cuts in 2025 as inflation edges closer to 2% target", url:"https://ft.com", topic:"Economics" },
     { tag:"Technology", title:"Apple unveils new AI features for iPhone amid growing competition from Chinese rivals", url:"https://ft.com", topic:"Technology" },
@@ -138,7 +141,7 @@
     { what:"Goldman Sachs made more money in the first three months of this year than ever before — a record profit driven by helping companies raise money and do big mergers.", now:"This tells us big businesses are confident enough to spend and invest again — generally a good sign for the wider economy.", future:"When banks like Goldman do well, it usually means more jobs and investment activity is coming. Could be a sign the global economy is picking up steam." },
   ];
 
-  let apiKey = '', isDemo = false, fetched = 0;
+  let apiKey = '', isDemo = false, fetched = 0, liveStories = [];
   let tweetCount = 0, briefCount = 0, topicMap = {};
   let tChart = null, cChart = null;
 
@@ -178,9 +181,11 @@
       const res = await fetch('/api/headlines');
       const data = await res.json();
       if (data.error) throw new Error(data.error);
-      const stories = data.stories.slice(fetched, fetched + 2);
-      fetched = (fetched + 2) % Math.max(data.stories.length, 1);
-      for (const s of stories) {
+      liveStories = data.stories;
+      document.getElementById('m-stories').textContent = liveStories.length;
+      const batch = liveStories.slice(fetched, fetched + 2);
+      fetched = (fetched + 2) % Math.max(liveStories.length, 1);
+      for (const s of batch) {
         const card = document.createElement('div');
         card.className = 'story-card';
         card.innerHTML = '<div class="story-tag">' + s.tag + '</div><div class="story-headline">' + s.title + '</div><div class="loading-line">Your mate\'s reading this one...</div>';
@@ -207,10 +212,10 @@
   async function genTweet(story, card, isRegen) {
     try {
       let tweet;
-      const idx = STORIES.findIndex(function(s) { return s.title === story.title; });
+      const demoIdx = DEMO_STORIES.findIndex(function(s) { return s.title === story.title; });
       if (isDemo) {
         await new Promise(function(r) { setTimeout(r, 900); });
-        tweet = isRegen ? DEMO_TWEETS[(idx+3)%DEMO_TWEETS.length] : DEMO_TWEETS[Math.max(idx,0)];
+        tweet = isRegen ? DEMO_TWEETS[(Math.max(demoIdx,0)+3)%DEMO_TWEETS.length] : DEMO_TWEETS[Math.max(demoIdx,0)];
       } else {
         const prompt = 'You are the voice of "The Digest" — a Twitter account explaining FT financial news like a smart mate. Write a tweet in plain everyday English. Warm, conversational, like texting a friend. No jargon. Under 240 characters. End with "ft.com" and 1-2 hashtags.\n\nHeadline: "' + story.title + '"\n\nOnly output the tweet.';
         tweet = await callClaude([{ role:'user', content: prompt }], 300);
@@ -229,24 +234,25 @@
   function renderCard(story, card, tweet) {
     var uid = 'tw' + Date.now() + Math.random().toString(36).slice(2,5);
     var chars = tweet.length;
-    var storyData = JSON.stringify(story);
+    // Store story in cache — no escaping needed in onclick
+    _stories[uid] = story;
     card.innerHTML =
       '<div class="story-tag">' + story.tag + '</div>' +
       '<div class="story-headline">' + story.title + '</div>' +
       '<div class="format-tabs">' +
-        '<button class="format-tab active" id="tab-tweet-' + uid + '" onclick="showPanel(\'' + uid + '\', \'tweet\')">Tweet</button>' +
-        '<button class="format-tab" id="tab-brief-' + uid + '" onclick="showPanel(\'' + uid + '\', \'brief\')">The Brief</button>' +
+        '<button class="format-tab active" id="tab-tweet-' + uid + '" onclick="showPanel(\'' + uid + '\',\'tweet\')">Tweet</button>' +
+        '<button class="format-tab" id="tab-brief-' + uid + '" onclick="showPanel(\'' + uid + '\',\'brief\')">The Brief</button>' +
       '</div>' +
       '<div id="panel-tweet-' + uid + '">' +
         '<div class="tweet-body" id="' + uid + '">' + tweet + '</div>' +
         '<div class="char-row">' +
           '<span class="char-count' + (chars>240?' over':'') + '">' + chars + ' / 280 chars</span>' +
-          '<a class="ft-link" href="' + story.url + '" target="_blank">Full story on FT →</a>' +
+          '<a class="ft-link" href="' + (story.url||'https://ft.com') + '" target="_blank">Full story on FT →</a>' +
         '</div>' +
         '<div class="btn-row">' +
-          '<button onclick="copyText(document.getElementById(\'' + uid + '\').textContent, this, \'Copy tweet\')">Copy tweet</button>' +
-          '<button onclick="regenTweet(this, \'' + uid + '\', \'' + storyData + '\')">Try another ↗</button>' +
-          '<button class="btn-blue" onclick="writeBrief(this, \'' + uid + '\', \'' + storyData + '\')">Write The Brief ↗</button>' +
+          '<button onclick="copyText(document.getElementById(\'' + uid + '\').textContent,this,\'Copy tweet\')">Copy tweet</button>' +
+          '<button onclick="regenTweet(this,\'' + uid + '\')">Try another ↗</button>' +
+          '<button class="btn-blue" onclick="writeBrief(this,\'' + uid + '\')">Write The Brief ↗</button>' +
         '</div>' +
       '</div>' +
       '<div id="panel-brief-' + uid + '" style="display:none;">' +
@@ -261,17 +267,18 @@
     document.getElementById('tab-brief-' + uid).classList.toggle('active', panel === 'brief');
   }
 
-  async function writeBrief(btn, uid, storyJson) {
-    var story = JSON.parse(storyJson);
+  async function writeBrief(btn, uid) {
+    var story = _stories[uid];
+    if (!story) return;
     var briefDiv = document.getElementById('brief-content-' + uid);
     briefDiv.innerHTML = '<div class="loading-line">Writing the full brief...</div>';
     showPanel(uid, 'brief');
     try {
       var brief;
-      var idx = STORIES.findIndex(function(s) { return s.title === story.title; });
+      var demoIdx = DEMO_STORIES.findIndex(function(s) { return s.title === story.title; });
       if (isDemo) {
         await new Promise(function(r) { setTimeout(r, 1200); });
-        brief = DEMO_BRIEFS[Math.max(idx,0)];
+        brief = DEMO_BRIEFS[Math.max(demoIdx,0)];
       } else {
         var prompt = 'You write for "The Digest" — plain English FT explainers like a smart mate. Write a short brief in 3 sections:\n1. WHAT HAPPENED — 2-3 sentences, no jargon\n2. WHAT IT MEANS RIGHT NOW — 2 sentences, immediate impact for everyday UK people\n3. WHAT IT COULD MEAN SOON — 2 sentences, next few weeks/months\n\nUnder 150 words total. Warm and conversational. Respond ONLY in this JSON format with no other text:\n{"what":"...","now":"...","future":"..."}\n\nHeadline: "' + story.title + '"';
         var raw = await callClaude([{ role:'user', content: prompt }], 500);
@@ -285,14 +292,15 @@
           '<div class="brief-section"><div class="brief-section-label">What it means right now</div><div class="brief-section-text">' + brief.now + '</div></div>' +
           '<div class="brief-section"><div class="brief-section-label">What it could mean soon</div><div class="brief-section-text">' + brief.future + '</div></div>' +
         '</div>' +
-        '<div class="btn-row"><button onclick="copyBrief(\'' + uid + '\', this)">Copy brief</button></div>';
+        '<div class="btn-row"><button onclick="copyBrief(\'' + uid + '\',this)">Copy brief</button></div>';
     } catch(e) {
       briefDiv.innerHTML = '<div class="err-line">Couldn\'t write the brief — ' + e.message + '</div>';
     }
   }
 
-  async function regenTweet(btn, uid, storyJson) {
-    var story = JSON.parse(storyJson);
+  async function regenTweet(btn, uid) {
+    var story = _stories[uid];
+    if (!story) return;
     btn.disabled = true; btn.textContent = 'Rewriting...';
     document.getElementById(uid).textContent = 'Finding a better way to put it...';
     await genTweet(story, btn.closest('.story-card'), true);
