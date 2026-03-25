@@ -27,7 +27,7 @@
     button:hover { background: #f5f5f2; }
     button.btn-primary { background: #1a1a1a; color: #fff; border-color: transparent; }
     button.btn-primary:hover { background: #333; }
-    button.btn-blue { background: #e8f0fb; color: #185fa5; border-color: transparent; }
+    button.btn-blue { background: #e8f0fb; color: #185fa5; border-color: transparent; font-weight: 500; }
     button.btn-blue:hover { background: #d5e4f7; }
     button:disabled { opacity: 0.4; cursor: default; }
     .tabs { display: flex; border-bottom: 1px solid #e5e5e0; margin-bottom: 1.5rem; }
@@ -179,7 +179,7 @@
     for (const s of batch) {
       const card = document.createElement('div');
       card.className = 'story-card';
-      card.innerHTML = `<div class="story-tag">${s.tag}</div><div class="story-headline">${s.title}</div><div class="loading-line">Your mate's reading this one...</div>`;
+      card.innerHTML = '<div class="story-tag">' + s.tag + '</div><div class="story-headline">' + s.title + '</div><div class="loading-line">Your mate\'s reading this one...</div>';
       feed.prepend(card);
       await genTweet(s, card, false);
     }
@@ -190,21 +190,22 @@
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ apiKey, messages, max_tokens: max_tokens || 500 })
+      body: JSON.stringify({ apiKey: apiKey, messages: messages, max_tokens: max_tokens || 500 })
     });
-    if (!res.ok) throw new Error(`API error ${res.status}`);
-    return (await res.json()).content[0].text.trim();
+    if (!res.ok) throw new Error('API error ' + res.status);
+    const data = await res.json();
+    return data.content[0].text.trim();
   }
 
   async function genTweet(story, card, isRegen) {
     try {
       let tweet;
-      const idx = STORIES.findIndex(s => s.title === story.title);
+      const idx = STORIES.findIndex(function(s) { return s.title === story.title; });
       if (isDemo) {
-        await new Promise(r => setTimeout(r, 900));
+        await new Promise(function(r) { setTimeout(r, 900); });
         tweet = isRegen ? DEMO_TWEETS[(idx+3)%DEMO_TWEETS.length] : DEMO_TWEETS[Math.max(idx,0)];
       } else {
-        const prompt = `You are the voice of "The Digest" — a Twitter account explaining FT financial news like a smart mate. Write a tweet in plain everyday English. Warm, conversational, like texting a friend. No jargon. Under 240 characters. End with "ft.com" and 1-2 hashtags.\n\nHeadline: "${story.title}"\n\nOnly output the tweet.`;
+        const prompt = 'You are the voice of "The Digest" — a Twitter account explaining FT financial news like a smart mate. Write a tweet in plain everyday English. Warm, conversational, like texting a friend. No jargon. Under 240 characters. End with "ft.com" and 1-2 hashtags.\n\nHeadline: "' + story.title + '"\n\nOnly output the tweet.';
         tweet = await callClaude([{ role:'user', content: prompt }], 300);
       }
       if (!isRegen) {
@@ -214,77 +215,77 @@
       }
       renderCard(story, card, tweet);
     } catch(e) {
-      card.innerHTML = `<div class="story-tag">${story.tag}</div><div class="story-headline">${story.title}</div><div class="err-line">Couldn't generate — ${e.message}</div>`;
+      card.innerHTML = '<div class="story-tag">' + story.tag + '</div><div class="story-headline">' + story.title + '</div><div class="err-line">Couldn\'t generate — ' + e.message + '</div>';
     }
   }
 
   function renderCard(story, card, tweet) {
-    const uid = 'tw' + Date.now() + Math.random().toString(36).slice(2,5);
-    const chars = tweet.length;
-    card.innerHTML = `
-      <div class="story-tag">${story.tag}</div>
-      <div class="story-headline">${story.title}</div>
-      <div class="format-tabs">
-        <button class="format-tab active" onclick="switchFormat(this,'tweet',this.closest('.story-card'))">Tweet</button>
-        <button class="format-tab" onclick="switchFormat(this,'brief',this.closest('.story-card'))">The Brief</button>
-      </div>
-      <div class="tweet-content">
-        <div class="tweet-body" id="${uid}">${tweet}</div>
-        <div class="char-row">
-          <span class="char-count ${chars>240?'over':''}">${chars} / 280 chars</span>
-          <a class="ft-link" href="${story.url}" target="_blank">Full story on FT →</a>
-        </div>
-        <div class="btn-row">
-          <button onclick="copyText(document.getElementById('${uid}').textContent, this, 'Copy tweet')">Copy tweet</button>
-          <button onclick="regenTweet(this, ${JSON.stringify(JSON.stringify(story))}, '${uid}')">Try another ↗</button>
-          <button class="btn-blue" onclick="triggerBrief(this, ${JSON.stringify(JSON.stringify(story))})">Write The Brief ↗</button>
-        </div>
-      </div>
-      <div class="brief-content" style="display:none;"></div>`;
+    var uid = 'tw' + Date.now() + Math.random().toString(36).slice(2,5);
+    var chars = tweet.length;
+    var storyData = JSON.stringify(story);
+    card.innerHTML =
+      '<div class="story-tag">' + story.tag + '</div>' +
+      '<div class="story-headline">' + story.title + '</div>' +
+      '<div class="format-tabs">' +
+        '<button class="format-tab active" id="tab-tweet-' + uid + '" onclick="showPanel(\'' + uid + '\', \'tweet\')">Tweet</button>' +
+        '<button class="format-tab" id="tab-brief-' + uid + '" onclick="showPanel(\'' + uid + '\', \'brief\')">The Brief</button>' +
+      '</div>' +
+      '<div id="panel-tweet-' + uid + '">' +
+        '<div class="tweet-body" id="' + uid + '">' + tweet + '</div>' +
+        '<div class="char-row">' +
+          '<span class="char-count' + (chars>240?' over':'') + '">' + chars + ' / 280 chars</span>' +
+          '<a class="ft-link" href="' + story.url + '" target="_blank">Full story on FT →</a>' +
+        '</div>' +
+        '<div class="btn-row">' +
+          '<button onclick="copyText(document.getElementById(\'' + uid + '\').textContent, this, \'Copy tweet\')">Copy tweet</button>' +
+          '<button onclick="regenTweet(this, \'' + uid + '\', ' + JSON.stringify(storyData) + ')">Try another ↗</button>' +
+          '<button class="btn-blue" onclick="writeBrief(this, \'' + uid + '\', ' + JSON.stringify(storyData) + ')">Write The Brief ↗</button>' +
+        '</div>' +
+      '</div>' +
+      '<div id="panel-brief-' + uid + '" style="display:none;">' +
+        '<div id="brief-content-' + uid + '"><div class="loading-line" style="display:none;">Writing the full brief...</div></div>' +
+      '</div>';
   }
 
-  function switchFormat(btn, tab, card) {
-    card.querySelectorAll('.format-tab').forEach(t => t.classList.remove('active'));
-    btn.classList.add('active');
-    card.querySelector('.tweet-content').style.display = tab==='tweet' ? '' : 'none';
-    card.querySelector('.brief-content').style.display = tab==='brief' ? '' : 'none';
+  function showPanel(uid, panel) {
+    document.getElementById('panel-tweet-' + uid).style.display = panel === 'tweet' ? '' : 'none';
+    document.getElementById('panel-brief-' + uid).style.display = panel === 'brief' ? '' : 'none';
+    document.getElementById('tab-tweet-' + uid).classList.toggle('active', panel === 'tweet');
+    document.getElementById('tab-brief-' + uid).classList.toggle('active', panel === 'brief');
   }
 
-  async function triggerBrief(btn, storyJson) {
-    const story = JSON.parse(storyJson);
-    const card = btn.closest('.story-card');
-    const briefDiv = card.querySelector('.brief-content');
+  async function writeBrief(btn, uid, storyJson) {
+    var story = JSON.parse(storyJson);
+    var briefDiv = document.getElementById('brief-content-' + uid);
     briefDiv.innerHTML = '<div class="loading-line">Writing the full brief...</div>';
-   switchFormat(card.querySelectorAll('.format-tab')[1], 'brief', card);
+    showPanel(uid, 'brief');
     try {
-      let brief;
-      const idx = STORIES.findIndex(s => s.title === story.title);
+      var brief;
+      var idx = STORIES.findIndex(function(s) { return s.title === story.title; });
       if (isDemo) {
-        await new Promise(r => setTimeout(r, 1200));
+        await new Promise(function(r) { setTimeout(r, 1200); });
         brief = DEMO_BRIEFS[Math.max(idx,0)];
       } else {
-        const prompt = `You write for "The Digest" — plain English FT explainers like a smart mate. Write a short brief in 3 sections:\n1. WHAT HAPPENED — 2-3 sentences, no jargon\n2. WHAT IT MEANS RIGHT NOW — 2 sentences, immediate impact for everyday UK people\n3. WHAT IT COULD MEAN SOON — 2 sentences, next few weeks/months\n\nUnder 150 words total. Warm and conversational. Respond ONLY in this JSON format with no other text:\n{"what":"...","now":"...","future":"..."}\n\nHeadline: "${story.title}"`;
-        const raw = await callClaude([{ role:'user', content: prompt }], 500);
+        var prompt = 'You write for "The Digest" — plain English FT explainers like a smart mate. Write a short brief in 3 sections:\n1. WHAT HAPPENED — 2-3 sentences, no jargon\n2. WHAT IT MEANS RIGHT NOW — 2 sentences, immediate impact for everyday UK people\n3. WHAT IT COULD MEAN SOON — 2 sentences, next few weeks/months\n\nUnder 150 words total. Warm and conversational. Respond ONLY in this JSON format with no other text:\n{"what":"...","now":"...","future":"..."}\n\nHeadline: "' + story.title + '"';
+        var raw = await callClaude([{ role:'user', content: prompt }], 500);
         brief = JSON.parse(raw.replace(/```json|```/g,''));
       }
       briefCount++;
       document.getElementById('m-briefs').textContent = briefCount;
-      briefDiv.innerHTML = `
-        <div class="brief-body">
-          <div class="brief-section"><div class="brief-section-label">What happened</div><div class="brief-section-text">${brief.what}</div></div>
-          <div class="brief-section"><div class="brief-section-label">What it means right now</div><div class="brief-section-text">${brief.now}</div></div>
-          <div class="brief-section"><div class="brief-section-label">What it could mean soon</div><div class="brief-section-text">${brief.future}</div></div>
-        </div>
-        <div class="btn-row">
-          <button onclick="copyBrief(this)">Copy brief</button>
-        </div>`;
+      briefDiv.innerHTML =
+        '<div class="brief-body">' +
+          '<div class="brief-section"><div class="brief-section-label">What happened</div><div class="brief-section-text">' + brief.what + '</div></div>' +
+          '<div class="brief-section"><div class="brief-section-label">What it means right now</div><div class="brief-section-text">' + brief.now + '</div></div>' +
+          '<div class="brief-section"><div class="brief-section-label">What it could mean soon</div><div class="brief-section-text">' + brief.future + '</div></div>' +
+        '</div>' +
+        '<div class="btn-row"><button onclick="copyBrief(\'' + uid + '\', this)">Copy brief</button></div>';
     } catch(e) {
-      briefDiv.innerHTML = `<div class="err-line">Couldn't write the brief — ${e.message}</div>`;
+      briefDiv.innerHTML = '<div class="err-line">Couldn\'t write the brief — ' + e.message + '</div>';
     }
   }
 
-  async function regenTweet(btn, storyJson, uid) {
-    const story = JSON.parse(storyJson);
+  async function regenTweet(btn, uid, storyJson) {
+    var story = JSON.parse(storyJson);
     btn.disabled = true; btn.textContent = 'Rewriting...';
     document.getElementById(uid).textContent = 'Finding a better way to put it...';
     await genTweet(story, btn.closest('.story-card'), true);
@@ -292,42 +293,42 @@
   }
 
   function copyText(text, btn, label) {
-    navigator.clipboard.writeText(text).then(() => {
+    navigator.clipboard.writeText(text).then(function() {
       btn.textContent = 'Copied!';
-      setTimeout(() => btn.textContent = label, 2000);
+      setTimeout(function() { btn.textContent = label; }, 2000);
     });
   }
 
-  function copyBrief(btn) {
-    const card = btn.closest('.story-card');
-    const sections = card.querySelectorAll('.brief-section');
-    let text = '';
-    sections.forEach(s => {
-      const label = s.querySelector('.brief-section-label').textContent;
-      const body = s.querySelector('.brief-section-text').textContent;
+  function copyBrief(uid, btn) {
+    var briefDiv = document.getElementById('brief-content-' + uid);
+    var sections = briefDiv.querySelectorAll('.brief-section');
+    var text = '';
+    sections.forEach(function(s) {
+      var label = s.querySelector('.brief-section-label').textContent;
+      var body = s.querySelector('.brief-section-text').textContent;
       text += label.toUpperCase() + '\n' + body + '\n\n';
     });
     copyText(text.trim(), btn, 'Copy brief');
   }
 
   function renderCharts() {
-    const analyticsTab = document.getElementById('analytics-tab');
+    var analyticsTab = document.getElementById('analytics-tab');
     if (!Object.keys(topicMap).length) {
       analyticsTab.innerHTML = '<p class="no-data">Fetch some stories first to see your analytics.</p>';
       return;
     }
-    analyticsTab.innerHTML = `
-      <div class="chart-label">Topics covered</div>
-      <div style="position:relative;width:100%;height:260px;"><canvas id="chart-topics"></canvas></div>
-      <div class="divider"></div>
-      <div class="chart-label">Content produced</div>
-      <div style="position:relative;width:100%;height:200px;"><canvas id="chart-content"></canvas></div>`;
-    const pal = ['#185FA5','#1D9E75','#D85A30','#7F77DD','#BA7517','#D4537E'];
-    const topics = Object.keys(topicMap);
+    analyticsTab.innerHTML =
+      '<div class="chart-label">Topics covered</div>' +
+      '<div style="position:relative;width:100%;height:260px;"><canvas id="chart-topics"></canvas></div>' +
+      '<div class="divider"></div>' +
+      '<div class="chart-label">Content produced</div>' +
+      '<div style="position:relative;width:100%;height:200px;"><canvas id="chart-content"></canvas></div>';
+    var pal = ['#185FA5','#1D9E75','#D85A30','#7F77DD','#BA7517','#D4537E'];
+    var topics = Object.keys(topicMap);
     if (tChart) tChart.destroy();
     tChart = new Chart(document.getElementById('chart-topics'), {
       type:'doughnut',
-      data:{ labels:topics, datasets:[{ data:topics.map(t=>topicMap[t]), backgroundColor:pal.slice(0,topics.length), borderWidth:0 }] },
+      data:{ labels:topics, datasets:[{ data:topics.map(function(t){return topicMap[t];}), backgroundColor:pal.slice(0,topics.length), borderWidth:0 }] },
       options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{ font:{size:12}, padding:14, boxWidth:12 } } } }
     });
     if (cChart) cChart.destroy();
