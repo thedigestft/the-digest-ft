@@ -238,8 +238,8 @@
         '</div>' +
         '<div class="btn-row">' +
           '<button onclick="copyText(document.getElementById(\'' + uid + '\').textContent, this, \'Copy tweet\')">Copy tweet</button>' +
-          '<button onclick="regenTweet(this, \'' + uid + '\', ' + JSON.stringify(storyData) + ')">Try another ↗</button>' +
-          '<button class="btn-blue" onclick="writeBrief(this, \'' + uid + '\', ' + JSON.stringify(storyData) + ')">Write The Brief ↗</button>' +
+          '<button onclick="regenTweet(this, \'' + uid + '\', \'' + storyData + '\')">Try another ↗</button>' +
+          '<button class="btn-blue" onclick="writeBrief(this, \'' + uid + '\', \'' + storyData + '\')">Write The Brief ↗</button>' +
         '</div>' +
       '</div>' +
       '<div id="panel-brief-' + uid + '" style="display:none;">' +
