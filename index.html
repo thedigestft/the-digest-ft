@@ -8,16 +8,12 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f9f9f7; color: #1a1a1a; min-height: 100vh; }
     .page { max-width: 680px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
-
-    /* Masthead */
     .masthead { border-bottom: 1px solid #e5e5e0; padding-bottom: 1.25rem; margin-bottom: 2rem; }
     .masthead-name { font-size: 28px; font-weight: 600; letter-spacing: -0.5px; color: #1a1a1a; margin-bottom: 4px; }
     .masthead-tag { font-size: 14px; color: #666; margin-bottom: 12px; }
     .masthead-meta { display: flex; align-items: center; gap: 8px; }
     .live-dot { width: 7px; height: 7px; border-radius: 50%; background: #e24b4a; display: inline-block; }
     .meta-text { font-size: 12px; color: #999; }
-
-    /* API setup */
     .api-box { background: #fff; border: 1px solid #e5e5e0; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
     .api-box h2 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
     .api-box p { font-size: 13px; color: #666; line-height: 1.6; margin-bottom: 14px; }
@@ -26,8 +22,6 @@
     .key-msg { font-size: 12px; margin-top: 8px; }
     .key-msg.ok { color: #2a7a4b; }
     .key-msg.err { color: #c0392b; }
-
-    /* Buttons */
     .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
     button { cursor: pointer; font-size: 13px; padding: 8px 16px; border-radius: 8px; border: 1px solid #ddd; background: #fff; color: #1a1a1a; font-family: inherit; transition: background 0.15s; }
     button:hover { background: #f5f5f2; }
@@ -36,43 +30,30 @@
     button.btn-blue { background: #e8f0fb; color: #185fa5; border-color: transparent; }
     button.btn-blue:hover { background: #d5e4f7; }
     button:disabled { opacity: 0.4; cursor: default; }
-
-    /* Tabs */
     .tabs { display: flex; border-bottom: 1px solid #e5e5e0; margin-bottom: 1.5rem; }
     .tab { font-size: 14px; padding: 8px 18px; border: none; background: transparent; color: #999; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: inherit; }
     .tab.active { color: #1a1a1a; border-bottom-color: #1a1a1a; font-weight: 500; }
-
-    /* Metrics */
     .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.5rem; }
     .metric { background: #fff; border: 1px solid #e5e5e0; border-radius: 10px; padding: 14px; text-align: center; }
     .metric-val { font-size: 24px; font-weight: 600; color: #1a1a1a; }
     .metric-label { font-size: 11px; color: #999; margin-top: 3px; }
-
-    /* Story cards */
     .story-card { background: #fff; border: 1px solid #e5e5e0; border-radius: 12px; padding: 1.25rem; margin-bottom: 12px; }
     .story-tag { font-size: 11px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
     .story-headline { font-size: 15px; font-weight: 500; color: #1a1a1a; margin-bottom: 14px; line-height: 1.5; }
-
-    /* Format tabs inside card */
     .format-tabs { display: flex; border-bottom: 1px solid #efefed; margin-bottom: 12px; }
     .format-tab { font-size: 12px; padding: 4px 12px; border: none; background: transparent; color: #aaa; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: inherit; }
     .format-tab.active { color: #1a1a1a; border-bottom-color: #1a1a1a; font-weight: 500; }
-
-    /* Tweet */
     .tweet-body { background: #f9f9f7; border: 1px solid #efefed; border-radius: 8px; padding: 12px 14px; font-size: 14px; color: #1a1a1a; line-height: 1.6; margin-bottom: 8px; }
     .char-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
     .char-count { font-size: 11px; color: #bbb; }
     .char-count.over { color: #c0392b; }
     .ft-link { font-size: 11px; color: #185fa5; text-decoration: none; }
     .ft-link:hover { text-decoration: underline; }
-
-    /* Brief */
     .brief-body { background: #f9f9f7; border: 1px solid #efefed; border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; }
     .brief-section { margin-bottom: 12px; }
     .brief-section:last-child { margin-bottom: 0; }
     .brief-section-label { font-size: 10px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 5px; }
     .brief-section-text { font-size: 13px; color: #1a1a1a; line-height: 1.7; }
-
     .loading-line { font-size: 13px; color: #999; font-style: italic; padding: 6px 0; }
     .err-line { font-size: 12px; color: #c0392b; padding: 6px 0; }
     .divider { border: none; border-top: 1px solid #e5e5e0; margin: 2rem 0; }
@@ -82,7 +63,6 @@
 </head>
 <body>
 <div class="page">
-
   <div class="masthead">
     <div class="masthead-name">The Digest</div>
     <div class="masthead-tag">The FT, but make it make sense. Financial news for actual humans.</div>
@@ -108,7 +88,6 @@
       <button class="tab active" onclick="showTab('feed')">Today's feed</button>
       <button class="tab" onclick="showTab('analytics')">Analytics</button>
     </div>
-
     <div id="feed-tab">
       <div class="metrics">
         <div class="metric"><div class="metric-val">6</div><div class="metric-label">Stories today</div></div>
@@ -118,7 +97,6 @@
       <button class="btn-primary" id="fetch-btn" onclick="fetchStories()">Get today's FT stories ↗</button>
       <div id="feed" style="margin-top: 1.5rem;"></div>
     </div>
-
     <div id="analytics-tab" style="display:none;">
       <div class="chart-label">Topics covered</div>
       <div style="position:relative;width:100%;height:260px;"><canvas id="chart-topics"></canvas></div>
@@ -127,7 +105,6 @@
       <div style="position:relative;width:100%;height:200px;"><canvas id="chart-content"></canvas></div>
     </div>
   </div>
-
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -209,6 +186,16 @@
     btn.disabled = false; btn.textContent = 'Get more FT stories ↗';
   }
 
+  async function callClaude(messages, max_tokens) {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ apiKey, messages, max_tokens: max_tokens || 500 })
+    });
+    if (!res.ok) throw new Error(`API error ${res.status}`);
+    return (await res.json()).content[0].text.trim();
+  }
+
   async function genTweet(story, card, isRegen) {
     try {
       let tweet;
@@ -218,13 +205,7 @@
         tweet = isRegen ? DEMO_TWEETS[(idx+3)%DEMO_TWEETS.length] : DEMO_TWEETS[Math.max(idx,0)];
       } else {
         const prompt = `You are the voice of "The Digest" — a Twitter account explaining FT financial news like a smart mate. Write a tweet in plain everyday English. Warm, conversational, like texting a friend. No jargon. Under 240 characters. End with "ft.com" and 1-2 hashtags.\n\nHeadline: "${story.title}"\n\nOnly output the tweet.`;
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
-          method:'POST',
-          headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
-          body:JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:300, messages:[{role:'user',content:prompt}] })
-        });
-        if (!res.ok) throw new Error(`API error ${res.status}`);
-        tweet = (await res.json()).content[0].text.trim();
+        tweet = await callClaude([{ role:'user', content: prompt }], 300);
       }
       if (!isRegen) {
         tweetCount++;
@@ -283,14 +264,8 @@
         brief = DEMO_BRIEFS[Math.max(idx,0)];
       } else {
         const prompt = `You write for "The Digest" — plain English FT explainers like a smart mate. Write a short brief in 3 sections:\n1. WHAT HAPPENED — 2-3 sentences, no jargon\n2. WHAT IT MEANS RIGHT NOW — 2 sentences, immediate impact for everyday UK people\n3. WHAT IT COULD MEAN SOON — 2 sentences, next few weeks/months\n\nUnder 150 words total. Warm and conversational. Respond ONLY in this JSON format with no other text:\n{"what":"...","now":"...","future":"..."}\n\nHeadline: "${story.title}"`;
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
-          method:'POST',
-          headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
-          body:JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:500, messages:[{role:'user',content:prompt}] })
-        });
-        if (!res.ok) throw new Error(`API error ${res.status}`);
-        const raw = (await res.json()).content[0].text.trim().replace(/```json|```/g,'');
-        brief = JSON.parse(raw);
+        const raw = await callClaude([{ role:'user', content: prompt }], 500);
+        brief = JSON.parse(raw.replace(/```json|```/g,''));
       }
       briefCount++;
       document.getElementById('m-briefs').textContent = briefCount;
