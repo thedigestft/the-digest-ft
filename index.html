@@ -255,7 +255,7 @@
     const card = btn.closest('.story-card');
     const briefDiv = card.querySelector('.brief-content');
     briefDiv.innerHTML = '<div class="loading-line">Writing the full brief...</div>';
-    card.querySelectorAll('.format-tab')[1].click();
+   switchFormat(card.querySelectorAll('.format-tab')[1], 'brief', card);
     try {
       let brief;
       const idx = STORIES.findIndex(s => s.title === story.title);
