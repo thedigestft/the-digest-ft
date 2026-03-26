@@ -1,68 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>The Digest — FT news for actual humans</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f9f9f7; color: #1a1a1a; min-height: 100vh; }
-    .page { max-width: 680px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
-    .masthead { border-bottom: 1px solid #e5e5e0; padding-bottom: 1.25rem; margin-bottom: 2rem; }
-    .masthead-name { font-size: 28px; font-weight: 600; letter-spacing: -0.5px; color: #1a1a1a; margin-bottom: 4px; }
-    .masthead-tag { font-size: 14px; color: #666; margin-bottom: 12px; }
-    .masthead-meta { display: flex; align-items: center; gap: 8px; }
-    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: #e24b4a; display: inline-block; }
-    .meta-text { font-size: 12px; color: #999; }
-    .api-box { background: #fff; border: 1px solid #e5e5e0; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
-    .api-box h2 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
-    .api-box p { font-size: 13px; color: #666; line-height: 1.6; margin-bottom: 14px; }
-    .api-box input { width: 100%; font-size: 14px; padding: 10px 12px; border-radius: 8px; border: 1px solid #ddd; background: #fafafa; color: #1a1a1a; margin-bottom: 10px; outline: none; }
-    .api-box input:focus { border-color: #999; }
-    .key-msg { font-size: 12px; margin-top: 8px; }
-    .key-msg.ok { color: #2a7a4b; }
-    .key-msg.err { color: #c0392b; }
-    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
-    button { cursor: pointer; font-size: 13px; padding: 8px 16px; border-radius: 8px; border: 1px solid #ddd; background: #fff; color: #1a1a1a; font-family: inherit; transition: background 0.15s; }
-    button:hover { background: #f5f5f2; }
-    button.btn-primary { background: #1a1a1a; color: #fff; border-color: transparent; }
-    button.btn-primary:hover { background: #333; }
-    button.btn-blue { background: #e8f0fb; color: #185fa5; border-color: transparent; font-weight: 500; }
-    button.btn-blue:hover { background: #d5e4f7; }
-    button:disabled { opacity: 0.4; cursor: default; }
-    .tabs { display: flex; border-bottom: 1px solid #e5e5e0; margin-bottom: 1.5rem; }
-    .tab { font-size: 14px; padding: 8px 18px; border: none; background: transparent; color: #999; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: inherit; }
-    .tab.active { color: #1a1a1a; border-bottom-color: #1a1a1a; font-weight: 500; }
-    .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.5rem; }
-    .metric { background: #fff; border: 1px solid #e5e5e0; border-radius: 10px; padding: 14px; text-align: center; }
-    .metric-val { font-size: 24px; font-weight: 600; color: #1a1a1a; }
-    .metric-label { font-size: 11px; color: #999; margin-top: 3px; }
-    .story-card { background: #fff; border: 1px solid #e5e5e0; border-radius: 12px; padding: 1.25rem; margin-bottom: 12px; }
-    .story-tag { font-size: 11px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
-    .story-headline { font-size: 15px; font-weight: 500; color: #1a1a1a; margin-bottom: 14px; line-height: 1.5; }
-    .format-tabs { display: flex; border-bottom: 1px solid #efefed; margin-bottom: 12px; }
-    .format-tab { font-size: 12px; padding: 4px 12px; border: none; background: transparent; color: #aaa; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: inherit; }
-    .format-tab.active { color: #1a1a1a; border-bottom-color: #1a1a1a; font-weight: 500; }
-    .tweet-body { background: #f9f9f7; border: 1px solid #efefed; border-radius: 8px; padding: 12px 14px; font-size: 14px; color: #1a1a1a; line-height: 1.6; margin-bottom: 8px; }
-    .char-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-    .char-count { font-size: 11px; color: #bbb; }
-    .char-count.over { color: #c0392b; }
-    .ft-link { font-size: 11px; color: #185fa5; text-decoration: none; }
-    .ft-link:hover { text-decoration: underline; }
-    .brief-body { background: #f9f9f7; border: 1px solid #efefed; border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; }
-    .brief-section { margin-bottom: 12px; }
-    .brief-section:last-child { margin-bottom: 0; }
-    .brief-section-label { font-size: 10px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 5px; }
-    .brief-section-text { font-size: 13px; color: #1a1a1a; line-height: 1.7; }
-    .loading-line { font-size: 13px; color: #999; font-style: italic; padding: 6px 0; }
-    .err-line { font-size: 12px; color: #c0392b; padding: 6px 0; }
-    .divider { border: none; border-top: 1px solid #e5e5e0; margin: 2rem 0; }
-    .chart-label { font-size: 15px; font-weight: 500; margin-bottom: 14px; }
-    .no-data { font-size: 13px; color: #999; padding: 1rem 0; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Digest — FT news for actual humans</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f9f9f7; color: #1a1a1a; min-height: 100vh; }
+.page { max-width: 680px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+.masthead { border-bottom: 1px solid #e5e5e0; padding-bottom: 1.25rem; margin-bottom: 2rem; }
+.masthead-name { font-size: 28px; font-weight: 600; letter-spacing: -0.5px; color: #1a1a1a; margin-bottom: 4px; }
+.masthead-tag { font-size: 14px; color: #666; margin-bottom: 12px; }
+.masthead-meta { display: flex; align-items: center; gap: 8px; }
+.live-dot { width: 7px; height: 7px; border-radius: 50%; background: #e24b4a; display: inline-block; }
+.meta-text { font-size: 12px; color: #999; }
+.api-box { background: #fff; border: 1px solid #e5e5e0; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+.api-box h2 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+.api-box p { font-size: 13px; color: #666; line-height: 1.6; margin-bottom: 14px; }
+.api-box input { width: 100%; font-size: 14px; padding: 10px 12px; border-radius: 8px; border: 1px solid #ddd; background: #fafafa; color: #1a1a1a; margin-bottom: 10px; outline: none; }
+.api-box input:focus { border-color: #999; }
+.key-msg { font-size: 12px; margin-top: 8px; }
+.key-msg.ok { color: #2a7a4b; }
+.key-msg.err { color: #c0392b; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+button { cursor: pointer; font-size: 13px; padding: 8px 16px; border-radius: 8px; border: 1px solid #ddd; background: #fff; color: #1a1a1a; font-family: inherit; transition: background 0.15s; }
+button:hover { background: #f5f5f2; }
+button.btn-primary { background: #1a1a1a; color: #fff; border-color: transparent; }
+button.btn-primary:hover { background: #333; }
+button.btn-blue { background: #e8f0fb; color: #185fa5; border-color: transparent; font-weight: 500; }
+button.btn-blue:hover { background: #d5e4f7; }
+button:disabled { opacity: 0.4; cursor: default; }
+.tabs { display: flex; border-bottom: 1px solid #e5e5e0; margin-bottom: 1.5rem; }
+.tab { font-size: 14px; padding: 8px 18px; border: none; background: transparent; color: #999; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: inherit; }
+.tab.active { color: #1a1a1a; border-bottom-color: #1a1a1a; font-weight: 500; }
+.metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+.metric { background: #fff; border: 1px solid #e5e5e0; border-radius: 10px; padding: 14px; text-align: center; }
+.metric-val { font-size: 24px; font-weight: 600; color: #1a1a1a; }
+.metric-label { font-size: 11px; color: #999; margin-top: 3px; }
+.story-card { background: #fff; border: 1px solid #e5e5e0; border-radius: 12px; padding: 1.25rem; margin-bottom: 12px; }
+.story-tag { font-size: 11px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+.story-headline { font-size: 15px; font-weight: 500; color: #1a1a1a; margin-bottom: 14px; line-height: 1.5; }
+.format-tabs { display: flex; border-bottom: 1px solid #efefed; margin-bottom: 12px; }
+.format-tab { font-size: 12px; padding: 4px 12px; border: none; background: transparent; color: #aaa; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: inherit; }
+.format-tab.active { color: #1a1a1a; border-bottom-color: #1a1a1a; font-weight: 500; }
+.tweet-body { background: #f9f9f7; border: 1px solid #efefed; border-radius: 8px; padding: 12px 14px; font-size: 14px; color: #1a1a1a; line-height: 1.6; margin-bottom: 8px; }
+.char-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.char-count { font-size: 11px; color: #bbb; }
+.char-count.over { color: #c0392b; }
+.ft-link { font-size: 11px; color: #185fa5; text-decoration: none; }
+.ft-link:hover { text-decoration: underline; }
+.brief-body { background: #f9f9f7; border: 1px solid #efefed; border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; }
+.brief-section { margin-bottom: 12px; }
+.brief-section:last-child { margin-bottom: 0; }
+.brief-section-label { font-size: 10px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 5px; }
+.brief-section-text { font-size: 13px; color: #1a1a1a; line-height: 1.7; }
+.loading-line { font-size: 13px; color: #999; font-style: italic; padding: 6px 0; }
+.err-line { font-size: 12px; color: #c0392b; padding: 6px 0; }
+.divider { border: none; border-top: 1px solid #e5e5e0; margin: 2rem 0; }
+.chart-label { font-size: 15px; font-weight: 500; margin-bottom: 14px; }
+.no-data { font-size: 13px; color: #999; padding: 1rem 0; }
+
+/* ── Thread Digest styles ── */
+.digest-intro { font-size: 13px; color: #666; line-height: 1.6; margin-bottom: 1rem; }
+.digest-meta { font-size: 12px; color: #999; margin-bottom: 1.25rem; }
+.digest-copy-all { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 1.25rem; }
+.digest-copy-all .note { font-size: 12px; color: #999; }
+.thread-card { background: #fff; border: 1px solid #e5e5e0; border-radius: 12px; padding: 1.25rem; margin-bottom: 10px; }
+.thread-card-header { font-size: 11px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+.thread-tweet-text { font-size: 14px; color: #1a1a1a; line-height: 1.65; white-space: pre-wrap; }
+.thread-copy-row { margin-top: 10px; }
+.digest-empty { background: #fff; border: 1px solid #e5e5e0; border-radius: 12px; padding: 2rem; text-align: center; font-size: 13px; color: #999; line-height: 1.6; }
+</style>
 </head>
 <body>
 <div class="page">
+
   <div class="masthead">
     <div class="masthead-name">The Digest</div>
     <div class="masthead-tag">The FT, but make it make sense. Financial news for actual humans.</div>
@@ -86,8 +98,11 @@
   <div id="main" style="display:none;">
     <div class="tabs">
       <button class="tab active" onclick="showTab('feed')">Today's feed</button>
+      <button class="tab" onclick="showTab('digest')">Thread Digest</button>
       <button class="tab" onclick="showTab('analytics')">Analytics</button>
     </div>
+
+    <!-- FEED TAB -->
     <div id="feed-tab">
       <div class="metrics">
         <div class="metric"><div class="metric-val" id="m-stories">0</div><div class="metric-label">Stories today</div></div>
@@ -97,6 +112,16 @@
       <button class="btn-primary" id="fetch-btn" onclick="fetchStories()">Get today's FT stories ↗</button>
       <div id="feed" style="margin-top: 1.5rem;"></div>
     </div>
+
+    <!-- DIGEST TAB -->
+    <div id="digest-tab" style="display:none;">
+      <p class="digest-intro">Generates a Twitter thread of the most important FT stories right now — up to 6, but fewer if the news doesn't warrant it. Stories already covered in a previous digest won't be repeated for 24 hours.</p>
+      <p class="digest-meta" id="digest-timeslot"></p>
+      <button class="btn-primary" id="digest-btn" onclick="generateDigest()">Generate Digest ↗</button>
+      <div id="digest-container" style="margin-top:1.5rem;"></div>
+    </div>
+
+    <!-- ANALYTICS TAB -->
     <div id="analytics-tab" style="display:none;">
       <div class="chart-label">Topics covered</div>
       <div style="position:relative;width:100%;height:260px;"><canvas id="chart-topics"></canvas></div>
@@ -109,250 +134,423 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-  document.getElementById('todays-date').textContent = new Date().toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+document.getElementById('todays-date').textContent = new Date().toLocaleDateString('en-GB', {
+  weekday:'long', day:'numeric', month:'long', year:'numeric'
+});
 
-  // Story cache — avoids all HTML escaping issues with apostrophes etc.
-  var _stories = {};
+// Global story cache — avoids HTML escaping issues with apostrophes
+var _stories = {};
+// Stores the current digest thread for copy-all
+var _digestThread = null;
 
-  const DEMO_STORIES = [
-    { tag:"Markets", title:"S&P 500 falls 2.1% amid fresh tariff fears as trade war uncertainty rattles investors", url:"https://ft.com", topic:"Markets" },
-    { tag:"Central banks", title:"Federal Reserve signals two rate cuts in 2025 as inflation edges closer to 2% target", url:"https://ft.com", topic:"Economics" },
-    { tag:"Technology", title:"Apple unveils new AI features for iPhone amid growing competition from Chinese rivals", url:"https://ft.com", topic:"Technology" },
-    { tag:"Energy", title:"Oil prices surge 4% after OPEC+ agrees to unexpected production cuts through Q3", url:"https://ft.com", topic:"Markets" },
-    { tag:"UK economy", title:"UK inflation falls to 2.8% but Chancellor warns of difficult spending decisions ahead", url:"https://ft.com", topic:"Economics" },
-    { tag:"Banking", title:"Goldman Sachs reports record Q1 profit driven by surge in investment banking fees", url:"https://ft.com", topic:"Finance" },
-  ];
+// ── Demo data ────────────────────────────────────────────────────────────
+const DEMO_STORIES = [
+  { tag:"Markets",       title:"S&P 500 falls 2.1% amid fresh tariff fears as trade war uncertainty rattles investors", url:"https://ft.com", topic:"Markets" },
+  { tag:"Central banks", title:"Federal Reserve signals two rate cuts in 2025 as inflation edges closer to 2% target",  url:"https://ft.com", topic:"Economics" },
+  { tag:"Technology",    title:"Apple unveils new AI features for iPhone amid growing competition from Chinese rivals",  url:"https://ft.com", topic:"Technology" },
+  { tag:"Energy",        title:"Oil prices surge 4% after OPEC+ agrees to unexpected production cuts through Q3",       url:"https://ft.com", topic:"Markets" },
+  { tag:"UK economy",    title:"UK inflation falls to 2.8% but Chancellor warns of difficult spending decisions ahead", url:"https://ft.com", topic:"Economics" },
+  { tag:"Banking",       title:"Goldman Sachs reports record Q1 profit driven by surge in investment banking fees",     url:"https://ft.com", topic:"Finance" },
+];
+const DEMO_TWEETS = [
+  "Bad news for your savings \uD83D\uDE2C The US stock market just dropped over 2% — weeks of gains gone — because people are worried about new trade taxes between countries. ft.com #Investing #Markets",
+  "The US central bank reckons it'll cut interest rates twice this year. Cheaper mortgages could be on the way — good news if you're borrowing. ft.com #Economy #InterestRates",
+  "Apple is adding AI to your iPhone but it's up against cheaper Chinese phones catching up fast. ft.com #Apple #Tech",
+  "Oil just jumped 4% overnight. The big oil countries agreed to pump less — less supply means higher prices at the petrol station. ft.com #Oil #Energy",
+  "UK prices rising a bit slower now (2.8%) but the government warns tough budget decisions are still ahead. ft.com #UKEconomy #Inflation",
+  "Goldman Sachs just had its best ever start to a year — record profits from helping big companies raise money and do deals. ft.com #Banking #Finance",
+];
+const DEMO_BRIEFS = [
+  { what:"America's main stock market (the S&P 500) dropped 2.1% yesterday — a big single-day fall. It happened because the US and other countries are arguing about trade taxes (tariffs), and investors are getting nervous.", now:"If you have a pension, ISA or investments, their value has likely dipped. Don't panic — markets go up and down — but worth keeping an eye on things.", future:"If the trade war gets worse, markets could keep falling. Prices on imported goods like electronics and clothes could also creep up over the next few months." },
+  { what:"The Federal Reserve — America's version of the Bank of England — has hinted it'll cut interest rates twice before the end of 2025, because inflation is nearly back to their 2% target.", now:"This is genuinely good news. Lower US rates often pull UK rates down too, which could mean cheaper mortgages and loans are on the way.", future:"If cuts happen as expected, mortgage rates could start falling by summer. Good news for anyone looking to buy or remortgage in the next 6-12 months." },
+  { what:"Apple announced new AI features coming to iPhones — smarter Siri, AI-written replies, better photo tools. But the bigger story is how hard Chinese rivals like Huawei are pushing back.", now:"If you're on an older iPhone, some features may not work on your model. Worth checking before you get too excited.", future:"Expect Apple to keep pushing AI features hard this year — and prices to stay competitive as the battle for customers heats up." },
+  { what:"OPEC+ — the group of countries that control most of the world's oil — agreed to pump less than expected. Less supply sent prices up 4% in a single day.", now:"Petrol prices will likely creep up at the pump over the next couple of weeks — it usually takes a bit of time to filter through.", future:"If OPEC+ keeps cutting, energy costs could stay elevated through summer. Worth shopping around for the best energy deal if you're not already fixed." },
+  { what:"UK inflation dropped to 2.8% — prices are still rising, just a bit more slowly. The government is cautiously pleased but warning that hard spending decisions are still coming.", now:"Your shopping and bills are still going up, just not quite as fast. The cost of living squeeze isn't over, but it is easing.", future:"If inflation keeps falling toward 2%, the Bank of England will likely cut interest rates later this year — good for borrowers, but savings rates will drop too." },
+  { what:"Goldman Sachs made more money in the first three months of this year than ever before — a record profit driven by helping companies raise money and do big mergers.", now:"This tells us big businesses are confident enough to spend and invest again — generally a good sign for the wider economy.", future:"When banks like Goldman do well, it usually means more jobs and investment activity is coming. Could be a sign the global economy is picking up steam." },
+];
 
-  const DEMO_TWEETS = [
-    "Bad news for your savings 😬 The US stock market just dropped over 2% — weeks of gains gone — because people are worried about new trade taxes between countries. ft.com #Investing #Markets",
-    "The US central bank reckons it'll cut interest rates twice this year. Cheaper mortgages could be on the way — good news if you're borrowing. ft.com #Economy #InterestRates",
-    "Apple is adding AI to your iPhone but it's up against cheaper Chinese phones catching up fast. ft.com #Apple #Tech",
-    "Oil just jumped 4% overnight. The big oil countries agreed to pump less — less supply means higher prices at the petrol station. ft.com #Oil #Energy",
-    "UK prices rising a bit slower now (2.8%) but the government warns tough budget decisions are still ahead. ft.com #UKEconomy #Inflation",
-    "Goldman Sachs just had its best ever start to a year — record profits from helping big companies raise money and do deals. ft.com #Banking #Finance",
-  ];
+let apiKey = '', isDemo = false, fetched = 0, liveStories = [];
+let tweetCount = 0, briefCount = 0, topicMap = {};
+let tChart = null, cChart = null;
 
-  const DEMO_BRIEFS = [
-    { what:"America's main stock market (the S&P 500) dropped 2.1% yesterday — a big single-day fall. It happened because the US and other countries are arguing about trade taxes (tariffs), and investors are getting nervous.", now:"If you have a pension, ISA or investments, their value has likely dipped. Don't panic — markets go up and down — but worth keeping an eye on things.", future:"If the trade war gets worse, markets could keep falling. Prices on imported goods like electronics and clothes could also creep up over the next few months." },
-    { what:"The Federal Reserve — America's version of the Bank of England — has hinted it'll cut interest rates twice before the end of 2025, because inflation is nearly back to their 2% target.", now:"This is genuinely good news. Lower US rates often pull UK rates down too, which could mean cheaper mortgages and loans are on the way.", future:"If cuts happen as expected, mortgage rates could start falling by summer. Good news for anyone looking to buy or remortgage in the next 6-12 months." },
-    { what:"Apple announced new AI features coming to iPhones — smarter Siri, AI-written replies, better photo tools. But the bigger story is how hard Chinese rivals like Huawei are pushing back.", now:"If you're on an older iPhone, some features may not work on your model. Worth checking before you get too excited.", future:"Expect Apple to keep pushing AI features hard this year — and prices to stay competitive as the battle for customers heats up." },
-    { what:"OPEC+ — the group of countries that control most of the world's oil — agreed to pump less than expected. Less supply sent prices up 4% in a single day.", now:"Petrol prices will likely creep up at the pump over the next couple of weeks — it usually takes a bit of time to filter through.", future:"If OPEC+ keeps cutting, energy costs could stay elevated through summer. Worth shopping around for the best energy deal if you're not already fixed." },
-    { what:"UK inflation dropped to 2.8% — prices are still rising, just a bit more slowly. The government is cautiously pleased but warning that hard spending decisions are still coming.", now:"Your shopping and bills are still going up, just not quite as fast. The cost of living squeeze isn't over, but it is easing.", future:"If inflation keeps falling toward 2%, the Bank of England will likely cut interest rates later this year — good for borrowers, but savings rates will drop too." },
-    { what:"Goldman Sachs made more money in the first three months of this year than ever before — a record profit driven by helping companies raise money and do big mergers.", now:"This tells us big businesses are confident enough to spend and invest again — generally a good sign for the wider economy.", future:"When banks like Goldman do well, it usually means more jobs and investment activity is coming. Could be a sign the global economy is picking up steam." },
-  ];
-
-  let apiKey = '', isDemo = false, fetched = 0, liveStories = [];
-  let tweetCount = 0, briefCount = 0, topicMap = {};
-  let tChart = null, cChart = null;
-
-  function saveKey() {
-    const v = document.getElementById('api-input').value.trim();
-    const msg = document.getElementById('key-msg');
-    if (!v.startsWith('sk-ant-') && !v.startsWith('sk-')) {
-      msg.className = 'key-msg err';
-      msg.textContent = "That doesn't look right — your key should start with sk-ant-";
-      return;
-    }
-    apiKey = v;
-    msg.className = 'key-msg ok';
-    msg.textContent = 'Key saved. Loading The Digest...';
-    setTimeout(launch, 600);
+// ── Auth ─────────────────────────────────────────────────────────────────
+function saveKey() {
+  const v = document.getElementById('api-input').value.trim();
+  const msg = document.getElementById('key-msg');
+  if (!v.startsWith('sk-ant-') && !v.startsWith('sk-')) {
+    msg.className = 'key-msg err';
+    msg.textContent = "That doesn't look right — your key should start with sk-ant-";
+    return;
   }
+  apiKey = v;
+  msg.className = 'key-msg ok';
+  msg.textContent = 'Key saved. Loading The Digest...';
+  setTimeout(launch, 600);
+}
+function demoMode() { isDemo = true; launch(); }
+function launch() {
+  document.getElementById('api-box').style.display = 'none';
+  document.getElementById('main').style.display = '';
+  updateDigestTimeslot();
+}
 
-  function demoMode() { isDemo = true; launch(); }
+// ── Tabs ─────────────────────────────────────────────────────────────────
+function showTab(t) {
+  document.getElementById('feed-tab').style.display     = t === 'feed'      ? '' : 'none';
+  document.getElementById('digest-tab').style.display   = t === 'digest'    ? '' : 'none';
+  document.getElementById('analytics-tab').style.display = t === 'analytics' ? '' : 'none';
+  document.querySelectorAll('.tab').forEach(function(el) { el.classList.remove('active'); });
+  var idx = t === 'feed' ? 0 : t === 'digest' ? 1 : 2;
+  document.querySelectorAll('.tab')[idx].classList.add('active');
+  if (t === 'analytics') renderCharts();
+  if (t === 'digest')    updateDigestTimeslot();
+}
 
-  function launch() {
-    document.getElementById('api-box').style.display = 'none';
-    document.getElementById('main').style.display = '';
-  }
-
-  function showTab(t) {
-    document.getElementById('feed-tab').style.display = t === 'feed' ? '' : 'none';
-    document.getElementById('analytics-tab').style.display = t === 'analytics' ? '' : 'none';
-    document.querySelectorAll('.tab').forEach((el,i) => el.classList.toggle('active', (i===0)===(t==='feed')));
-    if (t === 'analytics') renderCharts();
-  }
-
-  async function fetchStories() {
-    const btn = document.getElementById('fetch-btn');
-    btn.disabled = true; btn.textContent = 'Fetching live stories...';
-    const feed = document.getElementById('feed');
-    try {
-      const res = await fetch('/api/headlines');
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      liveStories = data.stories;
-      document.getElementById('m-stories').textContent = liveStories.length;
-      const batch = liveStories.slice(fetched, fetched + 2);
-      fetched = (fetched + 2) % Math.max(liveStories.length, 1);
-      for (const s of batch) {
-        const card = document.createElement('div');
-        card.className = 'story-card';
-        card.innerHTML = '<div class="story-tag">' + s.tag + '</div><div class="story-headline">' + s.title + '</div><div class="loading-line">Your mate\'s reading this one...</div>';
-        feed.prepend(card);
-        await genTweet(s, card, false);
-      }
-    } catch(e) {
-      feed.innerHTML = '<div class="err-line">Couldn\'t fetch stories — ' + e.message + '</div>';
-    }
-    btn.disabled = false; btn.textContent = 'Get more FT stories ↗';
-  }
-
-  async function callClaude(messages, max_tokens) {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ apiKey: apiKey, messages: messages, max_tokens: max_tokens || 500 })
-    });
-    if (!res.ok) throw new Error('API error ' + res.status);
+// ── Feed ─────────────────────────────────────────────────────────────────
+async function fetchStories() {
+  const btn = document.getElementById('fetch-btn');
+  btn.disabled = true; btn.textContent = 'Fetching live stories...';
+  const feed = document.getElementById('feed');
+  try {
+    const res = await fetch('/api/headlines');
     const data = await res.json();
-    return data.content[0].text.trim();
-  }
-
-  async function genTweet(story, card, isRegen) {
-    try {
-      let tweet;
-      const demoIdx = DEMO_STORIES.findIndex(function(s) { return s.title === story.title; });
-      if (isDemo) {
-        await new Promise(function(r) { setTimeout(r, 900); });
-        tweet = isRegen ? DEMO_TWEETS[(Math.max(demoIdx,0)+3)%DEMO_TWEETS.length] : DEMO_TWEETS[Math.max(demoIdx,0)];
-      } else {
-        const prompt = 'You are the voice of "The Digest" — a Twitter account explaining FT financial news like a smart mate. Write a tweet in plain everyday English. Warm, conversational, like texting a friend. No jargon. Under 240 characters. End with "ft.com" and 1-2 hashtags.\n\nHeadline: "' + story.title + '"\n\nOnly output the tweet.';
-        tweet = await callClaude([{ role:'user', content: prompt }], 300);
-      }
-      if (!isRegen) {
-        tweetCount++;
-        topicMap[story.topic] = (topicMap[story.topic]||0)+1;
-        document.getElementById('m-tweets').textContent = tweetCount;
-      }
-      renderCard(story, card, tweet);
-    } catch(e) {
-      card.innerHTML = '<div class="story-tag">' + story.tag + '</div><div class="story-headline">' + story.title + '</div><div class="err-line">Couldn\'t generate — ' + e.message + '</div>';
+    if (data.error) throw new Error(data.error);
+    liveStories = data.stories;
+    document.getElementById('m-stories').textContent = liveStories.length;
+    const batch = liveStories.slice(fetched, fetched + 2);
+    fetched = (fetched + 2) % Math.max(liveStories.length, 1);
+    for (const s of batch) {
+      const card = document.createElement('div');
+      card.className = 'story-card';
+      card.innerHTML = '<div class="story-tag">' + s.tag + '</div><div class="story-headline">' + s.title + '</div><div class="loading-line">Your mate\'s reading this one...</div>';
+      feed.prepend(card);
+      await genTweet(s, card, false);
     }
+  } catch(e) {
+    feed.innerHTML = '<div class="err-line">Couldn\'t fetch stories — ' + e.message + '</div>';
   }
+  btn.disabled = false; btn.textContent = 'Get more FT stories ↗';
+}
 
-  function renderCard(story, card, tweet) {
-    var uid = 'tw' + Date.now() + Math.random().toString(36).slice(2,5);
-    var chars = tweet.length;
-    // Store story in cache — no escaping needed in onclick
-    _stories[uid] = story;
-    card.innerHTML =
-      '<div class="story-tag">' + story.tag + '</div>' +
-      '<div class="story-headline">' + story.title + '</div>' +
-      '<div class="format-tabs">' +
-        '<button class="format-tab active" id="tab-tweet-' + uid + '" onclick="showPanel(\'' + uid + '\',\'tweet\')">Tweet</button>' +
-        '<button class="format-tab" id="tab-brief-' + uid + '" onclick="showPanel(\'' + uid + '\',\'brief\')">The Brief</button>' +
-      '</div>' +
-      '<div id="panel-tweet-' + uid + '">' +
-        '<div class="tweet-body" id="' + uid + '">' + tweet + '</div>' +
-        '<div class="char-row">' +
-          '<span class="char-count' + (chars>240?' over':'') + '">' + chars + ' / 280 chars</span>' +
-          '<a class="ft-link" href="' + (story.url||'https://ft.com') + '" target="_blank">Full story on FT →</a>' +
-        '</div>' +
-        '<div class="btn-row">' +
-          '<button onclick="copyText(document.getElementById(\'' + uid + '\').textContent,this,\'Copy tweet\')">Copy tweet</button>' +
-          '<button onclick="regenTweet(this,\'' + uid + '\')">Try another ↗</button>' +
-          '<button class="btn-blue" onclick="writeBrief(this,\'' + uid + '\')">Write The Brief ↗</button>' +
-        '</div>' +
-      '</div>' +
-      '<div id="panel-brief-' + uid + '" style="display:none;">' +
-        '<div id="brief-content-' + uid + '"><div class="loading-line" style="display:none;">Writing the full brief...</div></div>' +
-      '</div>';
-  }
+async function callClaude(messages, max_tokens) {
+  const res = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ apiKey: apiKey, messages: messages, max_tokens: max_tokens || 500 })
+  });
+  if (!res.ok) throw new Error('API error ' + res.status);
+  const data = await res.json();
+  return data.content[0].text.trim();
+}
 
-  function showPanel(uid, panel) {
-    document.getElementById('panel-tweet-' + uid).style.display = panel === 'tweet' ? '' : 'none';
-    document.getElementById('panel-brief-' + uid).style.display = panel === 'brief' ? '' : 'none';
-    document.getElementById('tab-tweet-' + uid).classList.toggle('active', panel === 'tweet');
-    document.getElementById('tab-brief-' + uid).classList.toggle('active', panel === 'brief');
-  }
-
-  async function writeBrief(btn, uid) {
-    var story = _stories[uid];
-    if (!story) return;
-    var briefDiv = document.getElementById('brief-content-' + uid);
-    briefDiv.innerHTML = '<div class="loading-line">Writing the full brief...</div>';
-    showPanel(uid, 'brief');
-    try {
-      var brief;
-      var demoIdx = DEMO_STORIES.findIndex(function(s) { return s.title === story.title; });
-      if (isDemo) {
-        await new Promise(function(r) { setTimeout(r, 1200); });
-        brief = DEMO_BRIEFS[Math.max(demoIdx,0)];
-      } else {
-        var prompt = 'You write for "The Digest" — plain English FT explainers like a smart mate. Write a short brief in 3 sections:\n1. WHAT HAPPENED — 2-3 sentences, no jargon\n2. WHAT IT MEANS RIGHT NOW — 2 sentences, immediate impact for everyday UK people\n3. WHAT IT COULD MEAN SOON — 2 sentences, next few weeks/months\n\nUnder 150 words total. Warm and conversational. Respond ONLY in this JSON format with no other text:\n{"what":"...","now":"...","future":"..."}\n\nHeadline: "' + story.title + '"';
-        var raw = await callClaude([{ role:'user', content: prompt }], 500);
-        brief = JSON.parse(raw.replace(/```json|```/g,''));
-      }
-      briefCount++;
-      document.getElementById('m-briefs').textContent = briefCount;
-      briefDiv.innerHTML =
-        '<div class="brief-body">' +
-          '<div class="brief-section"><div class="brief-section-label">What happened</div><div class="brief-section-text">' + brief.what + '</div></div>' +
-          '<div class="brief-section"><div class="brief-section-label">What it means right now</div><div class="brief-section-text">' + brief.now + '</div></div>' +
-          '<div class="brief-section"><div class="brief-section-label">What it could mean soon</div><div class="brief-section-text">' + brief.future + '</div></div>' +
-        '</div>' +
-        '<div class="btn-row"><button onclick="copyBrief(\'' + uid + '\',this)">Copy brief</button></div>';
-    } catch(e) {
-      briefDiv.innerHTML = '<div class="err-line">Couldn\'t write the brief — ' + e.message + '</div>';
+async function genTweet(story, card, isRegen) {
+  try {
+    let tweet;
+    const demoIdx = DEMO_STORIES.findIndex(function(s) { return s.title === story.title; });
+    if (isDemo) {
+      await new Promise(function(r) { setTimeout(r, 900); });
+      tweet = isRegen
+        ? DEMO_TWEETS[(Math.max(demoIdx,0)+3) % DEMO_TWEETS.length]
+        : DEMO_TWEETS[Math.max(demoIdx,0)];
+    } else {
+      const prompt = 'You are the voice of "The Digest" — a Twitter account explaining FT financial news like a smart mate. Write a tweet in plain everyday English. Warm, conversational, like texting a friend. No jargon. Under 240 characters. End with "ft.com" and 1-2 hashtags.\n\nHeadline: "' + story.title + '"\n\nOnly output the tweet.';
+      tweet = await callClaude([{ role:'user', content: prompt }], 300);
     }
+    if (!isRegen) {
+      tweetCount++;
+      topicMap[story.topic] = (topicMap[story.topic]||0) + 1;
+      document.getElementById('m-tweets').textContent = tweetCount;
+    }
+    renderCard(story, card, tweet);
+  } catch(e) {
+    card.innerHTML = '<div class="story-tag">' + story.tag + '</div><div class="story-headline">' + story.title + '</div><div class="err-line">Couldn\'t generate — ' + e.message + '</div>';
   }
+}
 
-  async function regenTweet(btn, uid) {
-    var story = _stories[uid];
-    if (!story) return;
-    btn.disabled = true; btn.textContent = 'Rewriting...';
-    document.getElementById(uid).textContent = 'Finding a better way to put it...';
-    await genTweet(story, btn.closest('.story-card'), true);
-    btn.disabled = false; btn.textContent = 'Try another ↗';
+function renderCard(story, card, tweet) {
+  var uid = 'tw' + Date.now() + Math.random().toString(36).slice(2,5);
+  var chars = tweet.length;
+  _stories[uid] = story;
+  card.innerHTML =
+    '<div class="story-tag">' + story.tag + '</div>' +
+    '<div class="story-headline">' + story.title + '</div>' +
+    '<div class="format-tabs">' +
+      '<button class="format-tab active" id="tab-tweet-' + uid + '" onclick="showPanel(\'' + uid + '\',\'tweet\')">Tweet</button>' +
+      '<button class="format-tab" id="tab-brief-' + uid + '" onclick="showPanel(\'' + uid + '\',\'brief\')">The Brief</button>' +
+    '</div>' +
+    '<div id="panel-tweet-' + uid + '">' +
+      '<div class="tweet-body" id="' + uid + '">' + tweet + '</div>' +
+      '<div class="char-row">' +
+        '<span class="char-count' + (chars>240?' over':'') + '">' + chars + ' / 280 chars</span>' +
+        '<a class="ft-link" href="' + (story.url||'https://ft.com') + '" target="_blank">Full story on FT \u2192</a>' +
+      '</div>' +
+      '<div class="btn-row">' +
+        '<button onclick="copyText(document.getElementById(\'' + uid + '\').textContent,this,\'Copy tweet\')">Copy tweet</button>' +
+        '<button onclick="regenTweet(this,\'' + uid + '\')">Try another \u2197</button>' +
+        '<button class="btn-blue" onclick="writeBrief(this,\'' + uid + '\')">Write The Brief \u2197</button>' +
+      '</div>' +
+    '</div>' +
+    '<div id="panel-brief-' + uid + '" style="display:none;">' +
+      '<div id="brief-content-' + uid + '"><div class="loading-line" style="display:none;">Writing the full brief...</div></div>' +
+    '</div>';
+}
+
+function showPanel(uid, panel) {
+  document.getElementById('panel-tweet-' + uid).style.display  = panel === 'tweet'  ? '' : 'none';
+  document.getElementById('panel-brief-' + uid).style.display  = panel === 'brief'  ? '' : 'none';
+  document.getElementById('tab-tweet-' + uid).classList.toggle('active', panel === 'tweet');
+  document.getElementById('tab-brief-' + uid).classList.toggle('active', panel === 'brief');
+}
+
+async function writeBrief(btn, uid) {
+  var story = _stories[uid];
+  if (!story) return;
+  var briefDiv = document.getElementById('brief-content-' + uid);
+  briefDiv.innerHTML = '<div class="loading-line">Writing the full brief...</div>';
+  showPanel(uid, 'brief');
+  try {
+    var brief;
+    var demoIdx = DEMO_STORIES.findIndex(function(s) { return s.title === story.title; });
+    if (isDemo) {
+      await new Promise(function(r) { setTimeout(r, 1200); });
+      brief = DEMO_BRIEFS[Math.max(demoIdx,0)];
+    } else {
+      var prompt = 'You write for "The Digest" — plain English FT explainers like a smart mate. Write a short brief in 3 sections:\n1. WHAT HAPPENED — 2-3 sentences, no jargon\n2. WHAT IT MEANS RIGHT NOW — 2 sentences, immediate impact for everyday UK people\n3. WHAT IT COULD MEAN SOON — 2 sentences, next few weeks/months\n\nUnder 150 words total. Warm and conversational. Respond ONLY in this JSON format with no other text:\n{"what":"...","now":"...","future":"..."}\n\nHeadline: "' + story.title + '"';
+      var raw = await callClaude([{ role:'user', content: prompt }], 500);
+      brief = JSON.parse(raw.replace(/```json|```/g,''));
+    }
+    briefCount++;
+    document.getElementById('m-briefs').textContent = briefCount;
+    briefDiv.innerHTML =
+      '<div class="brief-body">' +
+        '<div class="brief-section"><div class="brief-section-label">What happened</div><div class="brief-section-text">' + brief.what + '</div></div>' +
+        '<div class="brief-section"><div class="brief-section-label">What it means right now</div><div class="brief-section-text">' + brief.now + '</div></div>' +
+        '<div class="brief-section"><div class="brief-section-label">What it could mean soon</div><div class="brief-section-text">' + brief.future + '</div></div>' +
+      '</div>' +
+      '<div class="btn-row"><button onclick="copyBrief(\'' + uid + '\',this)">Copy brief</button></div>';
+  } catch(e) {
+    briefDiv.innerHTML = '<div class="err-line">Couldn\'t write the brief — ' + e.message + '</div>';
   }
+}
 
-  function copyText(text, btn, label) {
-    navigator.clipboard.writeText(text).then(function() {
-      btn.textContent = 'Copied!';
-      setTimeout(function() { btn.textContent = label; }, 2000);
-    });
-  }
+async function regenTweet(btn, uid) {
+  var story = _stories[uid];
+  if (!story) return;
+  btn.disabled = true; btn.textContent = 'Rewriting...';
+  document.getElementById(uid).textContent = 'Finding a better way to put it...';
+  await genTweet(story, btn.closest('.story-card'), true);
+  btn.disabled = false; btn.textContent = 'Try another \u2197';
+}
 
-  function copyBrief(uid, btn) {
-    var briefDiv = document.getElementById('brief-content-' + uid);
-    var sections = briefDiv.querySelectorAll('.brief-section');
-    var text = '';
-    sections.forEach(function(s) {
-      var label = s.querySelector('.brief-section-label').textContent;
-      var body = s.querySelector('.brief-section-text').textContent;
-      text += label.toUpperCase() + '\n' + body + '\n\n';
-    });
-    copyText(text.trim(), btn, 'Copy brief');
-  }
+function copyText(text, btn, label) {
+  navigator.clipboard.writeText(text).then(function() {
+    btn.textContent = 'Copied!';
+    setTimeout(function() { btn.textContent = label; }, 2000);
+  });
+}
+function copyBrief(uid, btn) {
+  var sections = document.getElementById('brief-content-' + uid).querySelectorAll('.brief-section');
+  var text = '';
+  sections.forEach(function(s) {
+    text += s.querySelector('.brief-section-label').textContent.toUpperCase() + '\n' +
+            s.querySelector('.brief-section-text').textContent + '\n\n';
+  });
+  copyText(text.trim(), btn, 'Copy brief');
+}
 
-  function renderCharts() {
-    var analyticsTab = document.getElementById('analytics-tab');
-    if (!Object.keys(topicMap).length) {
-      analyticsTab.innerHTML = '<p class="no-data">Fetch some stories first to see your analytics.</p>';
+// ── Thread Digest ─────────────────────────────────────────────────────────
+
+function getUKHour() {
+  var now = new Date();
+  var h = parseInt(now.toLocaleString('en-US', { timeZone: 'Europe/London', hour: 'numeric', hour12: false }));
+  return isNaN(h) ? now.getHours() : h;
+}
+
+function getDigestLabel() {
+  var h = getUKHour();
+  if (h < 8)  return 'Morning Digest';
+  if (h < 12) return 'Mid-Morning Digest';
+  if (h < 15) return 'Lunchtime Digest';
+  return 'Evening Digest';
+}
+
+function updateDigestTimeslot() {
+  var el = document.getElementById('digest-timeslot');
+  if (!el) return;
+  var h = getUKHour();
+  var next = h < 8  ? 'Mid-Morning at 10:30am'
+           : h < 12 ? 'Lunchtime at 1:00pm'
+           : h < 15 ? 'Evening at 5:30pm'
+           : 'Morning at 6:00am tomorrow';
+  el.textContent = 'Scheduled slots: 6am \u00B7 10:30am \u00B7 1pm \u00B7 5:30pm (UK time) \u00B7 Next: ' + next;
+}
+
+// Deduplication — localStorage, 24-hour window
+function getDigestHistory() {
+  try {
+    var items = JSON.parse(localStorage.getItem('digest_history') || '[]');
+    var cutoff = Date.now() - 86400000; // 24h
+    return items.filter(function(i) { return i.ts > cutoff; });
+  } catch(e) { return []; }
+}
+function addToDigestHistory(titles) {
+  var existing = getDigestHistory();
+  var now = Date.now();
+  titles.forEach(function(title) {
+    if (!existing.find(function(e) { return e.title === title; })) {
+      existing.push({ title: title, ts: now });
+    }
+  });
+  try { localStorage.setItem('digest_history', JSON.stringify(existing)); } catch(e) {}
+}
+
+function copyDigestThread(btn) {
+  if (_digestThread) copyText(_digestThread, btn, 'Copy full thread');
+}
+function copyThreadTweet(idx, btn) {
+  if (!_digestThread) return;
+  var parts = _digestThread.split('\n\n');
+  if (parts[idx] !== undefined) copyText(parts[idx], btn, 'Copy');
+}
+
+async function generateDigest() {
+  var btn = document.getElementById('digest-btn');
+  var container = document.getElementById('digest-container');
+  btn.disabled = true; btn.textContent = 'Generating digest...';
+  container.innerHTML = '<div class="loading-line">Fetching latest stories...</div>';
+
+  try {
+    var stories;
+    if (isDemo) {
+      stories = DEMO_STORIES;
+    } else {
+      var res = await fetch('/api/headlines');
+      var data = await res.json();
+      if (data.error) throw new Error(data.error);
+      stories = data.stories;
+    }
+
+    // Remove stories already covered in the last 24h
+    var usedTitles = getDigestHistory().map(function(h) { return h.title; });
+    var freshStories = stories.filter(function(s) { return !usedTitles.includes(s.title); });
+
+    if (freshStories.length === 0) {
+      container.innerHTML = '<div class="digest-empty">No new stories since the last digest — everything has already been covered. Check back at the next scheduled time.</div>';
+      btn.disabled = false; btn.textContent = 'Generate Digest \u2197';
       return;
     }
-    analyticsTab.innerHTML =
-      '<div class="chart-label">Topics covered</div>' +
-      '<div style="position:relative;width:100%;height:260px;"><canvas id="chart-topics"></canvas></div>' +
-      '<div class="divider"></div>' +
-      '<div class="chart-label">Content produced</div>' +
-      '<div style="position:relative;width:100%;height:200px;"><canvas id="chart-content"></canvas></div>';
-    var pal = ['#185FA5','#1D9E75','#D85A30','#7F77DD','#BA7517','#D4537E'];
-    var topics = Object.keys(topicMap);
-    if (tChart) tChart.destroy();
-    tChart = new Chart(document.getElementById('chart-topics'), {
-      type:'doughnut',
-      data:{ labels:topics, datasets:[{ data:topics.map(function(t){return topicMap[t];}), backgroundColor:pal.slice(0,topics.length), borderWidth:0 }] },
-      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{ font:{size:12}, padding:14, boxWidth:12 } } } }
+
+    var label   = getDigestLabel();
+    var dateStr = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    var selectedTitles = [];
+    var tweets = [];
+
+    if (isDemo) {
+      await new Promise(function(r) { setTimeout(r, 1400); });
+      // Demo: take up to 4 fresh stories
+      freshStories.slice(0, 4).forEach(function(s) {
+        var idx = DEMO_STORIES.findIndex(function(d) { return d.title === s.title; });
+        tweets.push(DEMO_TWEETS[Math.max(idx, 0)]);
+        selectedTitles.push(s.title);
+      });
+    } else {
+      container.innerHTML = '<div class="loading-line">Claude is reading the headlines and picking what matters most...</div>';
+      var headlineList = freshStories.map(function(s, i) {
+        return (i + 1) + '. [' + s.tag + '] ' + s.title;
+      }).join('\n');
+
+      var selectionPrompt =
+        'You are the editor of "The Digest" — a UK-focused Twitter account explaining financial news in plain English for everyday people.\n\n' +
+        'Latest FT headlines (not yet covered in today\'s digests):\n' + headlineList + '\n\n' +
+        'Task: Select only the stories that genuinely matter to a UK audience — things that affect their money, jobs, cost of living, or the wider economy. ' +
+        'Ignore minor corporate news, incremental updates, niche sector stories, or anything that won\'t meaningfully change how people think about their finances. ' +
+        'Be selective — if only 2 or 3 stories truly matter, pick just those. Maximum 6.\n\n' +
+        'For each story you select, write a tweet in plain everyday English — warm and conversational, like texting a smart mate. Under 240 characters. No jargon. End with ft.com.\n\n' +
+        'Respond ONLY in this exact JSON format:\n' +
+        '{"selected":[{"title":"exact original headline","tweet":"tweet text"}]}';
+
+      var raw = await callClaude([{ role:'user', content: selectionPrompt }], 1500);
+      var parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
+      parsed.selected.forEach(function(s) {
+        tweets.push(s.tweet);
+        selectedTitles.push(s.title);
+      });
+    }
+
+    // Build thread array
+    var headerTweet = '\uD83D\uDDDE\uFE0F FT ' + label + ' \u00B7 ' + dateStr + '\n\nHere\u2019s what\u2019s actually worth knowing right now \uD83E\uDDF5';
+    var footerTweet = 'Follow @TheDigestFT for the next update.';
+    var threadTweets = [headerTweet]
+      .concat(tweets.map(function(t, i) { return (i + 1) + '/ ' + t; }))
+      .concat([footerTweet]);
+
+    _digestThread = threadTweets.join('\n\n');
+
+    // Persist to history
+    addToDigestHistory(selectedTitles);
+
+    // Render cards
+    var html =
+      '<div class="digest-copy-all">' +
+        '<button class="btn-primary" onclick="copyDigestThread(this)">Copy full thread</button>' +
+        '<span class="note">' + tweets.length + ' stor' + (tweets.length === 1 ? 'y' : 'ies') + ' selected &nbsp;\u00B7&nbsp; ' + threadTweets.length + ' tweets total</span>' +
+      '</div>';
+
+    threadTweets.forEach(function(t, i) {
+      var isHeader = i === 0;
+      var isFooter = i === threadTweets.length - 1;
+      var cardLabel = isHeader ? 'Thread opener'
+                    : isFooter ? 'Thread closer'
+                    : 'Tweet ' + i + ' of ' + tweets.length;
+      // Safely encode text for display (no eval risk, just html-escape)
+      var displayText = t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      html +=
+        '<div class="thread-card">' +
+          '<div class="thread-card-header">' + cardLabel + '</div>' +
+          '<div class="thread-tweet-text">' + displayText + '</div>' +
+          '<div class="thread-copy-row">' +
+            '<button onclick="copyThreadTweet(' + i + ',this)">Copy</button>' +
+          '</div>' +
+        '</div>';
     });
-    if (cChart) cChart.destroy();
-    cChart = new Chart(document.getElementById('chart-content'), {
-      type:'bar',
-      data:{ labels:['Tweets','Briefs'], datasets:[{ data:[tweetCount,briefCount], backgroundColor:['#185FA5','#1D9E75'], borderRadius:4, borderWidth:0 }] },
-      options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true,ticks:{stepSize:1}}, x:{grid:{display:false}} } }
-    });
+
+    container.innerHTML = html;
+
+  } catch(e) {
+    container.innerHTML = '<div class="err-line">Couldn\'t generate digest — ' + e.message + '</div>';
   }
+
+  btn.disabled = false; btn.textContent = 'Generate Digest \u2197';
+}
+
+// ── Analytics ─────────────────────────────────────────────────────────────
+function renderCharts() {
+  var analyticsTab = document.getElementById('analytics-tab');
+  if (!Object.keys(topicMap).length) {
+    analyticsTab.innerHTML = '<p class="no-data">Fetch some stories first to see your analytics.</p>';
+    return;
+  }
+  analyticsTab.innerHTML =
+    '<div class="chart-label">Topics covered</div>' +
+    '<div style="position:relative;width:100%;height:260px;"><canvas id="chart-topics"></canvas></div>' +
+    '<div class="divider"></div>' +
+    '<div class="chart-label">Content produced</div>' +
+    '<div style="position:relative;width:100%;height:200px;"><canvas id="chart-content"></canvas></div>';
+  var pal = ['#185FA5','#1D9E75','#D85A30','#7F77DD','#BA7517','#D4537E'];
+  var topics = Object.keys(topicMap);
+  if (tChart) tChart.destroy();
+  tChart = new Chart(document.getElementById('chart-topics'), {
+    type:'doughnut',
+    data:{ labels:topics, datasets:[{ data:topics.map(function(t){return topicMap[t];}), backgroundColor:pal.slice(0,topics.length), borderWidth:0 }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{ font:{size:12}, padding:14, boxWidth:12 } } } }
+  });
+  if (cChart) cChart.destroy();
+  cChart = new Chart(document.getElementById('chart-content'), {
+    type:'bar',
+    data:{ labels:['Tweets','Briefs'], datasets:[{ data:[tweetCount,briefCount], backgroundColor:['#185FA5','#1D9E75'], borderRadius:4, borderWidth:0 }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true,ticks:{stepSize:1}}, x:{grid:{display:false}} } }
+  });
+}
 </script>
 </body>
 </html>
