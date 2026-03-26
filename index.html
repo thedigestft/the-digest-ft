@@ -445,18 +445,22 @@ async function generateDigest() {
     var selectedTitles = [];
     var tweets = [];
 
+    // storyUrls tracks the URL for each selected tweet (parallel array to tweets)
+    var storyUrls = [];
+
     if (isDemo) {
       await new Promise(function(r) { setTimeout(r, 1400); });
       // Demo: take up to 4 fresh stories
       freshStories.slice(0, 4).forEach(function(s) {
         var idx = DEMO_STORIES.findIndex(function(d) { return d.title === s.title; });
         tweets.push(DEMO_TWEETS[Math.max(idx, 0)]);
+        storyUrls.push(s.url || 'https://ft.com');
         selectedTitles.push(s.title);
       });
     } else {
       container.innerHTML = '<div class="loading-line">Claude is reading the headlines and picking what matters most...</div>';
       var headlineList = freshStories.map(function(s, i) {
-        return (i + 1) + '. [' + s.tag + '] ' + s.title;
+        return (i + 1) + '. [' + s.tag + '] ' + s.title + ' | url: ' + (s.url || 'https://ft.com');
       }).join('\n');
 
       var selectionPrompt =
@@ -465,23 +469,26 @@ async function generateDigest() {
         'Task: Select only the stories that genuinely matter to a UK audience — things that affect their money, jobs, cost of living, or the wider economy. ' +
         'Ignore minor corporate news, incremental updates, niche sector stories, or anything that won\'t meaningfully change how people think about their finances. ' +
         'Be selective — if only 2 or 3 stories truly matter, pick just those. Maximum 6.\n\n' +
-        'For each story you select, write a tweet in plain everyday English — warm and conversational, like texting a smart mate. Under 240 characters. No jargon. End with ft.com.\n\n' +
+        'For each story you select, write a tweet in plain everyday English — warm and conversational, like texting a smart mate. Under 220 characters (NOT including the URL, which will be appended separately). No jargon. Do NOT include any URL in the tweet text.\n\n' +
         'Respond ONLY in this exact JSON format:\n' +
-        '{"selected":[{"title":"exact original headline","tweet":"tweet text"}]}';
+        '{"selected":[{"title":"exact original headline","url":"url from the headline list","tweet":"tweet text with no url"}]}';
 
       var raw = await callClaude([{ role:'user', content: selectionPrompt }], 1500);
       var parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
       parsed.selected.forEach(function(s) {
         tweets.push(s.tweet);
+        // Use URL Claude returned, or fall back to matching from freshStories by title
+        var matched = freshStories.find(function(f) { return f.title === s.title; });
+        storyUrls.push(s.url || (matched && matched.url) || 'https://ft.com');
         selectedTitles.push(s.title);
       });
     }
 
-    // Build thread array
+    // Build thread array — append real URL to each story tweet
     var headerTweet = '\uD83D\uDDDE\uFE0F FT ' + label + ' \u00B7 ' + dateStr + '\n\nHere\u2019s what\u2019s actually worth knowing right now \uD83E\uDDF5';
     var footerTweet = 'Follow @TheDigestFT for the next update.';
     var threadTweets = [headerTweet]
-      .concat(tweets.map(function(t, i) { return (i + 1) + '/ ' + t; }))
+      .concat(tweets.map(function(t, i) { return (i + 1) + '/ ' + t + '\n\n' + storyUrls[i]; }))
       .concat([footerTweet]);
 
     _digestThread = threadTweets.join('\n\n');
