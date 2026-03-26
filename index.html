@@ -72,6 +72,22 @@ button:disabled { opacity: 0.4; cursor: default; }
 .thread-tweet-text { font-size: 14px; color: #1a1a1a; line-height: 1.65; white-space: pre-wrap; }
 .thread-copy-row { margin-top: 10px; }
 .digest-empty { background: #fff; border: 1px solid #e5e5e0; border-radius: 12px; padding: 2rem; text-align: center; font-size: 13px; color: #999; line-height: 1.6; }
+
+/* ── X connect panel ── */
+.x-panel { background: #fff; border: 1px solid #e5e5e0; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.25rem; }
+.x-panel-top { display: flex; align-items: center; justify-content: space-between; }
+.x-panel-status { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #1a1a1a; }
+.x-dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
+.x-dot.on { background: #1d9e75; }
+.x-toggle { font-size: 12px; color: #185fa5; background: none; border: none; cursor: pointer; padding: 0; }
+.x-fields { margin-top: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.x-fields input { font-size: 13px; padding: 8px 10px; border-radius: 8px; border: 1px solid #ddd; background: #fafafa; color: #1a1a1a; outline: none; width: 100%; font-family: inherit; }
+.x-fields input:focus { border-color: #999; }
+.x-fields .x-note { font-size: 11px; color: #999; grid-column: span 2; line-height: 1.5; }
+.x-fields .btn-row { grid-column: span 2; }
+.btn-x { background: #000; color: #fff; border-color: transparent; font-weight: 500; }
+.btn-x:hover { background: #222; }
+.btn-x:disabled { opacity: 0.4; }
 </style>
 </head>
 <body>
@@ -106,6 +122,31 @@ button:disabled { opacity: 0.4; cursor: default; }
 
     <!-- FEED TAB -->
     <div id="feed-tab">
+
+      <!-- X connect panel -->
+      <div class="x-panel" id="x-panel">
+        <div class="x-panel-top">
+          <div class="x-panel-status">
+            <span class="x-dot" id="x-dot"></span>
+            <span id="x-status-label">Connect X to post threads directly</span>
+          </div>
+          <button class="x-toggle" id="x-toggle" onclick="toggleXPanel()">Set up ↓</button>
+        </div>
+        <div id="x-fields" style="display:none;">
+          <div class="x-fields">
+            <input type="password" id="x-ck"  placeholder="API Key" />
+            <input type="password" id="x-cs"  placeholder="API Secret" />
+            <input type="password" id="x-at"  placeholder="Access Token" />
+            <input type="password" id="x-ats" placeholder="Access Token Secret" />
+            <p class="x-note">Keys stored only in your browser. Get them from developer.twitter.com → your app → Keys and Tokens. Make sure your app has <strong>Read and Write</strong> permissions.</p>
+            <div class="btn-row">
+              <button class="btn-x" onclick="saveXCreds()">Save &amp; connect</button>
+              <button onclick="disconnectX()">Disconnect</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="metrics">
         <div class="metric"><div class="metric-val" id="m-stories">0</div><div class="metric-label">Stories today</div></div>
         <div class="metric"><div class="metric-val" id="m-tweets">0</div><div class="metric-label">Tweets ready</div></div>
@@ -199,6 +240,108 @@ let apiKey = '', isDemo = false, fetched = 0, liveStories = [];
 let tweetCount = 0, threadCount = 0, topicMap = {};
 let tChart = null, cChart = null;
 
+// ── X credentials ────────────────────────────────────────────────────────
+function getXCreds() {
+  var ck  = localStorage.getItem('x_ck');
+  var cs  = localStorage.getItem('x_cs');
+  var at  = localStorage.getItem('x_at');
+  var ats = localStorage.getItem('x_ats');
+  if (ck && cs && at && ats) return { consumerKey: ck, consumerSecret: cs, accessToken: at, accessTokenSecret: ats };
+  return null;
+}
+function isXConnected() { return !!getXCreds(); }
+function saveXCreds() {
+  var ck  = document.getElementById('x-ck').value.trim();
+  var cs  = document.getElementById('x-cs').value.trim();
+  var at  = document.getElementById('x-at').value.trim();
+  var ats = document.getElementById('x-ats').value.trim();
+  if (!ck || !cs || !at || !ats) { alert('Please fill in all four fields.'); return; }
+  localStorage.setItem('x_ck', ck);
+  localStorage.setItem('x_cs', cs);
+  localStorage.setItem('x_at', at);
+  localStorage.setItem('x_ats', ats);
+  updateXStatus();
+  toggleXPanel(true); // close panel
+}
+function disconnectX() {
+  ['x_ck','x_cs','x_at','x_ats'].forEach(function(k) { localStorage.removeItem(k); });
+  document.getElementById('x-ck').value = '';
+  document.getElementById('x-cs').value = '';
+  document.getElementById('x-at').value = '';
+  document.getElementById('x-ats').value = '';
+  updateXStatus();
+}
+function updateXStatus() {
+  var connected = isXConnected();
+  document.getElementById('x-dot').className = 'x-dot' + (connected ? ' on' : '');
+  document.getElementById('x-status-label').textContent = connected
+    ? 'X connected \u2014 Post to X buttons are now active'
+    : 'Connect X to post threads directly';
+  document.getElementById('x-toggle').textContent = connected ? 'Manage \u2193' : 'Set up \u2193';
+}
+function toggleXPanel(forceClose) {
+  var fields = document.getElementById('x-fields');
+  var open   = fields.style.display !== 'none';
+  if (forceClose || open) {
+    fields.style.display = 'none';
+  } else {
+    fields.style.display = '';
+    // Pre-fill if already saved
+    var creds = getXCreds();
+    if (creds) {
+      document.getElementById('x-ck').value  = creds.consumerKey;
+      document.getElementById('x-cs').value  = creds.consumerSecret;
+      document.getElementById('x-at').value  = creds.accessToken;
+      document.getElementById('x-ats').value = creds.accessTokenSecret;
+    }
+  }
+}
+async function postToX(tweets, btn) {
+  var creds = getXCreds();
+  if (!creds) {
+    // Open X panel so user can connect
+    document.getElementById('x-fields').style.display = '';
+    document.getElementById('x-panel').scrollIntoView({ behavior: 'smooth' });
+    btn.textContent = 'Connect X first \u2191';
+    setTimeout(function() { btn.textContent = 'Post to X \u2197'; }, 3000);
+    return;
+  }
+  var original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Posting\u2026';
+  try {
+    var res = await fetch('/api/tweet', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        consumerKey:       creds.consumerKey,
+        consumerSecret:    creds.consumerSecret,
+        accessToken:       creds.accessToken,
+        accessTokenSecret: creds.accessTokenSecret,
+        tweets:            tweets
+      })
+    });
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to post');
+    btn.disabled = false;
+    btn.textContent = 'Posted! View \u2197';
+    btn.classList.add('btn-blue');
+    btn.onclick = function() { window.open(data.threadUrl, '_blank'); };
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = original;
+    alert('Couldn\u2019t post to X: ' + e.message);
+  }
+}
+function postStoryToX(uid, btn) {
+  if (!_storyThreads[uid]) return;
+  postToX(_storyThreads[uid].split('\n\n'), btn);
+}
+function postDigestToX(btn) {
+  if (!_digestThread) return;
+  postToX(_digestThread.split('\n\n'), btn);
+}
+
 // ── Auth ─────────────────────────────────────────────────────────────────
 function saveKey() {
   const v = document.getElementById('api-input').value.trim();
@@ -218,6 +361,7 @@ function launch() {
   document.getElementById('api-box').style.display = 'none';
   document.getElementById('main').style.display = '';
   updateDigestTimeslot();
+  updateXStatus();
 }
 
 // ── Tabs ─────────────────────────────────────────────────────────────────
@@ -369,7 +513,8 @@ async function generateStoryThread(btn, uid) {
         '<div class="story-thread-header">Your thread &nbsp;\u00B7&nbsp; ' + allTweets.length + ' tweets</div>' +
         '<div class="thread-copy-all-row">' +
           '<button class="btn-primary" onclick="copyStoryThread(\'' + uid + '\',this)">Copy full thread</button>' +
-          '<span class="note">Ready to paste into X/Twitter</span>' +
+          '<button class="btn-x" onclick="postStoryToX(\'' + uid + '\',this)">Post to X \u2197</button>' +
+          '<span class="note">' + allTweets.length + ' tweets</span>' +
         '</div>';
 
     allTweets.forEach(function(t, i) {
@@ -537,7 +682,8 @@ async function generateDigest() {
     var html =
       '<div class="digest-copy-all">' +
         '<button class="btn-primary" onclick="copyDigestThread(this)">Copy full thread</button>' +
-        '<span class="note">' + tweets.length + ' stor' + (tweets.length === 1 ? 'y' : 'ies') + ' \u00B7 ' + threadTweets.length + ' tweets total</span>' +
+        '<button class="btn-x" onclick="postDigestToX(this)">Post to X \u2197</button>' +
+        '<span class="note">' + tweets.length + ' stor' + (tweets.length === 1 ? 'y' : 'ies') + ' \u00B7 ' + threadTweets.length + ' tweets</span>' +
       '</div>';
 
     threadTweets.forEach(function(t, i) {
