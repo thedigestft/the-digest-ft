@@ -82,7 +82,7 @@ button:disabled { opacity: 0.4; cursor: default; }
     <div class="masthead-tag">The FT, but make it make sense. Financial news for actual humans.</div>
     <div class="masthead-meta">
       <span class="live-dot"></span>
-      <span class="meta-text">@thedigestft &nbsp;·&nbsp; <span id="todays-date"></span></span>
+      <span class="meta-text">@readthedigest &nbsp;·&nbsp; <span id="todays-date"></span></span>
     </div>
   </div>
 
@@ -526,7 +526,7 @@ async function generateDigest() {
     }
 
     var headerTweet = '\uD83D\uDDDE\uFE0F FT ' + label + ' \u00B7 ' + dateStr + '\n\nHere\u2019s what\u2019s actually worth knowing right now \uD83E\uDDF5';
-    var footerTweet = 'Follow @TheDigestFT for the next update.';
+    var footerTweet = 'Follow @readthedigest for the next update.';
     var threadTweets = [headerTweet]
       .concat(tweets.map(function(t, i) { return (i + 1) + '/ ' + t; }))
       .concat([footerTweet]);
