@@ -40,27 +40,29 @@ button:disabled { opacity: 0.4; cursor: default; }
 .story-card { background: #fff; border: 1px solid #e5e5e0; border-radius: 12px; padding: 1.25rem; margin-bottom: 12px; }
 .story-tag { font-size: 11px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
 .story-headline { font-size: 15px; font-weight: 500; color: #1a1a1a; margin-bottom: 14px; line-height: 1.5; }
-.format-tabs { display: flex; border-bottom: 1px solid #efefed; margin-bottom: 12px; }
-.format-tab { font-size: 12px; padding: 4px 12px; border: none; background: transparent; color: #aaa; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: inherit; }
-.format-tab.active { color: #1a1a1a; border-bottom-color: #1a1a1a; font-weight: 500; }
 .tweet-body { background: #f9f9f7; border: 1px solid #efefed; border-radius: 8px; padding: 12px 14px; font-size: 14px; color: #1a1a1a; line-height: 1.6; margin-bottom: 8px; }
 .char-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 .char-count { font-size: 11px; color: #bbb; }
 .char-count.over { color: #c0392b; }
-.ft-link { font-size: 11px; color: #185fa5; text-decoration: none; }
-.ft-link:hover { text-decoration: underline; }
-.brief-body { background: #f9f9f7; border: 1px solid #efefed; border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; }
-.brief-section { margin-bottom: 12px; }
-.brief-section:last-child { margin-bottom: 0; }
-.brief-section-label { font-size: 10px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 5px; }
-.brief-section-text { font-size: 13px; color: #1a1a1a; line-height: 1.7; }
+.ft-credit { font-size: 11px; color: #999; }
 .loading-line { font-size: 13px; color: #999; font-style: italic; padding: 6px 0; }
 .err-line { font-size: 12px; color: #c0392b; padding: 6px 0; }
 .divider { border: none; border-top: 1px solid #e5e5e0; margin: 2rem 0; }
 .chart-label { font-size: 15px; font-weight: 500; margin-bottom: 14px; }
 .no-data { font-size: 13px; color: #999; padding: 1rem 0; }
 
-/* ── Thread Digest styles ── */
+/* ── Story thread (expanded from a single story card) ── */
+.story-thread { margin-top: 1rem; border-top: 1px solid #efefed; padding-top: 1rem; }
+.story-thread-header { font-size: 11px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+.thread-tweet { background: #f9f9f7; border: 1px solid #efefed; border-radius: 8px; padding: 12px 14px; font-size: 14px; color: #1a1a1a; line-height: 1.65; margin-bottom: 6px; white-space: pre-wrap; }
+.thread-tweet-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+.thread-tweet-num { font-size: 11px; font-weight: 600; color: #bbb; min-width: 20px; padding-top: 14px; }
+.thread-tweet-body { flex: 1; }
+.thread-copy-btn { font-size: 12px; padding: 4px 10px; }
+.thread-copy-all-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.thread-copy-all-row .note { font-size: 12px; color: #999; }
+
+/* ── Digest tab ── */
 .digest-intro { font-size: 13px; color: #666; line-height: 1.6; margin-bottom: 1rem; }
 .digest-meta { font-size: 12px; color: #999; margin-bottom: 1.25rem; }
 .digest-copy-all { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 1.25rem; }
@@ -107,7 +109,7 @@ button:disabled { opacity: 0.4; cursor: default; }
       <div class="metrics">
         <div class="metric"><div class="metric-val" id="m-stories">0</div><div class="metric-label">Stories today</div></div>
         <div class="metric"><div class="metric-val" id="m-tweets">0</div><div class="metric-label">Tweets ready</div></div>
-        <div class="metric"><div class="metric-val" id="m-briefs">0</div><div class="metric-label">Briefs written</div></div>
+        <div class="metric"><div class="metric-val" id="m-threads">0</div><div class="metric-label">Threads written</div></div>
       </div>
       <button class="btn-primary" id="fetch-btn" onclick="fetchStories()">Get today's FT stories ↗</button>
       <div id="feed" style="margin-top: 1.5rem;"></div>
@@ -138,19 +140,19 @@ document.getElementById('todays-date').textContent = new Date().toLocaleDateStri
   weekday:'long', day:'numeric', month:'long', year:'numeric'
 });
 
-// Global story cache — avoids HTML escaping issues with apostrophes
-var _stories = {};
-// Stores the current digest thread for copy-all
-var _digestThread = null;
+// Global caches
+var _stories = {};       // story objects by uid
+var _storyThreads = {};  // generated thread text by uid (for copy-all)
+var _digestThread = null; // current digest thread text
 
-// ── Demo data ────────────────────────────────────────────────────────────
+// ── Demo data ─────────────────────────────────────────────────────────────
 const DEMO_STORIES = [
-  { tag:"Markets",       title:"S&P 500 falls 2.1% amid fresh tariff fears as trade war uncertainty rattles investors", url:"https://ft.com", topic:"Markets" },
-  { tag:"Central banks", title:"Federal Reserve signals two rate cuts in 2025 as inflation edges closer to 2% target",  url:"https://ft.com", topic:"Economics" },
-  { tag:"Technology",    title:"Apple unveils new AI features for iPhone amid growing competition from Chinese rivals",  url:"https://ft.com", topic:"Technology" },
-  { tag:"Energy",        title:"Oil prices surge 4% after OPEC+ agrees to unexpected production cuts through Q3",       url:"https://ft.com", topic:"Markets" },
-  { tag:"UK economy",    title:"UK inflation falls to 2.8% but Chancellor warns of difficult spending decisions ahead", url:"https://ft.com", topic:"Economics" },
-  { tag:"Banking",       title:"Goldman Sachs reports record Q1 profit driven by surge in investment banking fees",     url:"https://ft.com", topic:"Finance" },
+  { tag:'Markets',       title:"S&P 500 falls 2.1% amid fresh tariff fears as trade war uncertainty rattles investors", url:'https://ft.com', topic:'Markets' },
+  { tag:'Central banks', title:"Federal Reserve signals two rate cuts in 2025 as inflation edges closer to 2% target",  url:'https://ft.com', topic:'Economics' },
+  { tag:'Technology',    title:"Apple unveils new AI features for iPhone amid growing competition from Chinese rivals",  url:'https://ft.com', topic:'Technology' },
+  { tag:'Energy',        title:"Oil prices surge 4% after OPEC+ agrees to unexpected production cuts through Q3",       url:'https://ft.com', topic:'Markets' },
+  { tag:'UK economy',    title:"UK inflation falls to 2.8% but Chancellor warns of difficult spending decisions ahead", url:'https://ft.com', topic:'Economics' },
+  { tag:'Banking',       title:"Goldman Sachs reports record Q1 profit driven by surge in investment banking fees",     url:'https://ft.com', topic:'Finance' },
 ];
 const DEMO_TWEETS = [
   "Bad news for your savings \uD83D\uDE2C The US stock market just dropped over 2% — weeks of gains gone — because people are worried about new trade taxes between countries. ft.com #Investing #Markets",
@@ -160,17 +162,41 @@ const DEMO_TWEETS = [
   "UK prices rising a bit slower now (2.8%) but the government warns tough budget decisions are still ahead. ft.com #UKEconomy #Inflation",
   "Goldman Sachs just had its best ever start to a year — record profits from helping big companies raise money and do deals. ft.com #Banking #Finance",
 ];
-const DEMO_BRIEFS = [
-  { what:"America's main stock market (the S&P 500) dropped 2.1% yesterday — a big single-day fall. It happened because the US and other countries are arguing about trade taxes (tariffs), and investors are getting nervous.", now:"If you have a pension, ISA or investments, their value has likely dipped. Don't panic — markets go up and down — but worth keeping an eye on things.", future:"If the trade war gets worse, markets could keep falling. Prices on imported goods like electronics and clothes could also creep up over the next few months." },
-  { what:"The Federal Reserve — America's version of the Bank of England — has hinted it'll cut interest rates twice before the end of 2025, because inflation is nearly back to their 2% target.", now:"This is genuinely good news. Lower US rates often pull UK rates down too, which could mean cheaper mortgages and loans are on the way.", future:"If cuts happen as expected, mortgage rates could start falling by summer. Good news for anyone looking to buy or remortgage in the next 6-12 months." },
-  { what:"Apple announced new AI features coming to iPhones — smarter Siri, AI-written replies, better photo tools. But the bigger story is how hard Chinese rivals like Huawei are pushing back.", now:"If you're on an older iPhone, some features may not work on your model. Worth checking before you get too excited.", future:"Expect Apple to keep pushing AI features hard this year — and prices to stay competitive as the battle for customers heats up." },
-  { what:"OPEC+ — the group of countries that control most of the world's oil — agreed to pump less than expected. Less supply sent prices up 4% in a single day.", now:"Petrol prices will likely creep up at the pump over the next couple of weeks — it usually takes a bit of time to filter through.", future:"If OPEC+ keeps cutting, energy costs could stay elevated through summer. Worth shopping around for the best energy deal if you're not already fixed." },
-  { what:"UK inflation dropped to 2.8% — prices are still rising, just a bit more slowly. The government is cautiously pleased but warning that hard spending decisions are still coming.", now:"Your shopping and bills are still going up, just not quite as fast. The cost of living squeeze isn't over, but it is easing.", future:"If inflation keeps falling toward 2%, the Bank of England will likely cut interest rates later this year — good for borrowers, but savings rates will drop too." },
-  { what:"Goldman Sachs made more money in the first three months of this year than ever before — a record profit driven by helping companies raise money and do big mergers.", now:"This tells us big businesses are confident enough to spend and invest again — generally a good sign for the wider economy.", future:"When banks like Goldman do well, it usually means more jobs and investment activity is coming. Could be a sign the global economy is picking up steam." },
+const DEMO_THREADS = [
+  [
+    "2/ America's S&P 500 is like the FTSE 100 but for US stocks — and it dropped 2.1% in a single day. The trigger? The US and several countries are threatening new taxes on each other's imports. Markets hate this kind of uncertainty.",
+    "3/ If you have a pension, ISA or stocks and shares account, your pot has probably dipped a little. It usually bounces back — but sustained trade wars can drag on for months, keeping markets jittery.",
+    "4/ The big thing to watch: whether the US actually follows through on tariffs or this stays a negotiating tactic. If it escalates, expect more volatility and potentially higher prices on imported goods. ft.com"
+  ],
+  [
+    "2/ The Federal Reserve is America's equivalent of the Bank of England — it controls interest rates. It's now hinting at two cuts before the end of 2025, because US inflation is nearly back down to its 2% target.",
+    "3/ Lower US rates matter for the UK too. They tend to drag global rates down, which could mean cheaper mortgages and loans here. If you're on a tracker mortgage or looking to remortgage, this is good news.",
+    "4/ Cuts are expected by summer if inflation keeps falling. That could bring UK mortgage rates down meaningfully by late 2025. Good time to keep an eye on deals if you're due to remortgage. ft.com"
+  ],
+  [
+    "2/ Apple announced AI-powered upgrades coming to iPhones — a smarter Siri, automatic replies, better photo editing. But the bigger story is the competition: Chinese brands like Huawei are catching up fast with cheaper phones.",
+    "3/ If you're on an older iPhone (pre-15 series), some AI features won't work on your device — Apple tends to limit the good stuff to newer models. Worth checking the small print before getting too excited.",
+    "4/ Expect a big push from Apple later this year to convince people to upgrade. Competition from China means they can't afford to price people out. Could be a good year to buy a new iPhone. ft.com"
+  ],
+  [
+    "2/ OPEC+ is the group of mostly Middle Eastern countries that controls most of the world's oil supply. They decided to pump less oil than expected — and when supply drops, prices go up. Oil jumped 4% in a day as a result.",
+    "3/ Higher oil prices filter through to petrol stations pretty quickly — usually within a couple of weeks. So expect a few more pence per litre at the pump in the near future.",
+    "4/ If OPEC+ keeps cutting supply through summer, energy costs could stay elevated for months. If you're not already on a fixed energy tariff, now might be a good time to look at locking in a deal. ft.com"
+  ],
+  [
+    "2/ UK inflation measures how fast prices are rising across the economy. It's dropped to 2.8% — still above the Bank of England's 2% target, but heading in the right direction. The government is relieved, but cautious.",
+    "3/ Your weekly shop and energy bills are still going up — just a bit more slowly. The cost of living squeeze isn't over, but the worst of it is probably behind us.",
+    "4/ If inflation keeps falling toward 2%, the Bank of England is likely to cut interest rates later this year. Good for borrowers and mortgage holders — but savings rates will start coming down too. ft.com"
+  ],
+  [
+    "2/ Goldman Sachs is one of the world's biggest investment banks. In the first three months of 2025, it made more profit than in any other quarter ever — driven by a huge jump in companies doing deals and raising money.",
+    "3/ This signals that big businesses are feeling confident enough to spend, merge, and invest again. When banks like Goldman do well, it usually means economic activity is picking up more broadly.",
+    "4/ A booming Goldman tends to be a leading indicator — jobs, bonuses, and investment often follow. Could be a sign that the global economy is quietly gaining momentum after a tough couple of years. ft.com"
+  ],
 ];
 
 let apiKey = '', isDemo = false, fetched = 0, liveStories = [];
-let tweetCount = 0, briefCount = 0, topicMap = {};
+let tweetCount = 0, threadCount = 0, topicMap = {};
 let tChart = null, cChart = null;
 
 // ── Auth ─────────────────────────────────────────────────────────────────
@@ -196,12 +222,11 @@ function launch() {
 
 // ── Tabs ─────────────────────────────────────────────────────────────────
 function showTab(t) {
-  document.getElementById('feed-tab').style.display     = t === 'feed'      ? '' : 'none';
-  document.getElementById('digest-tab').style.display   = t === 'digest'    ? '' : 'none';
+  document.getElementById('feed-tab').style.display      = t === 'feed'      ? '' : 'none';
+  document.getElementById('digest-tab').style.display    = t === 'digest'    ? '' : 'none';
   document.getElementById('analytics-tab').style.display = t === 'analytics' ? '' : 'none';
   document.querySelectorAll('.tab').forEach(function(el) { el.classList.remove('active'); });
-  var idx = t === 'feed' ? 0 : t === 'digest' ? 1 : 2;
-  document.querySelectorAll('.tab')[idx].classList.add('active');
+  document.querySelectorAll('.tab')[t === 'feed' ? 0 : t === 'digest' ? 1 : 2].classList.add('active');
   if (t === 'analytics') renderCharts();
   if (t === 'digest')    updateDigestTimeslot();
 }
@@ -274,63 +299,17 @@ function renderCard(story, card, tweet) {
   card.innerHTML =
     '<div class="story-tag">' + story.tag + '</div>' +
     '<div class="story-headline">' + story.title + '</div>' +
-    '<div class="format-tabs">' +
-      '<button class="format-tab active" id="tab-tweet-' + uid + '" onclick="showPanel(\'' + uid + '\',\'tweet\')">Tweet</button>' +
-      '<button class="format-tab" id="tab-brief-' + uid + '" onclick="showPanel(\'' + uid + '\',\'brief\')">The Brief</button>' +
+    '<div class="tweet-body" id="' + uid + '">' + tweet + '</div>' +
+    '<div class="char-row">' +
+      '<span class="char-count' + (chars > 240 ? ' over' : '') + '">' + chars + ' / 280 chars</span>' +
+      '<span class="ft-credit">Source: ft.com</span>' +
     '</div>' +
-    '<div id="panel-tweet-' + uid + '">' +
-      '<div class="tweet-body" id="' + uid + '">' + tweet + '</div>' +
-      '<div class="char-row">' +
-        '<span class="char-count' + (chars>240?' over':'') + '">' + chars + ' / 280 chars</span>' +
-        '<a class="ft-link" href="' + (story.url||'https://ft.com') + '" target="_blank">Full story on FT \u2192</a>' +
-      '</div>' +
-      '<div class="btn-row">' +
-        '<button onclick="copyText(document.getElementById(\'' + uid + '\').textContent,this,\'Copy tweet\')">Copy tweet</button>' +
-        '<button onclick="regenTweet(this,\'' + uid + '\')">Try another \u2197</button>' +
-        '<button class="btn-blue" onclick="writeBrief(this,\'' + uid + '\')">Write The Brief \u2197</button>' +
-      '</div>' +
+    '<div class="btn-row">' +
+      '<button onclick="copyText(document.getElementById(\'' + uid + '\').textContent,this,\'Copy tweet\')">Copy tweet</button>' +
+      '<button onclick="regenTweet(this,\'' + uid + '\')">Try another \u2197</button>' +
+      '<button class="btn-blue" id="thread-btn-' + uid + '" onclick="generateStoryThread(this,\'' + uid + '\')">Generate Thread \u2197</button>' +
     '</div>' +
-    '<div id="panel-brief-' + uid + '" style="display:none;">' +
-      '<div id="brief-content-' + uid + '"><div class="loading-line" style="display:none;">Writing the full brief...</div></div>' +
-    '</div>';
-}
-
-function showPanel(uid, panel) {
-  document.getElementById('panel-tweet-' + uid).style.display  = panel === 'tweet'  ? '' : 'none';
-  document.getElementById('panel-brief-' + uid).style.display  = panel === 'brief'  ? '' : 'none';
-  document.getElementById('tab-tweet-' + uid).classList.toggle('active', panel === 'tweet');
-  document.getElementById('tab-brief-' + uid).classList.toggle('active', panel === 'brief');
-}
-
-async function writeBrief(btn, uid) {
-  var story = _stories[uid];
-  if (!story) return;
-  var briefDiv = document.getElementById('brief-content-' + uid);
-  briefDiv.innerHTML = '<div class="loading-line">Writing the full brief...</div>';
-  showPanel(uid, 'brief');
-  try {
-    var brief;
-    var demoIdx = DEMO_STORIES.findIndex(function(s) { return s.title === story.title; });
-    if (isDemo) {
-      await new Promise(function(r) { setTimeout(r, 1200); });
-      brief = DEMO_BRIEFS[Math.max(demoIdx,0)];
-    } else {
-      var prompt = 'You write for "The Digest" — plain English FT explainers like a smart mate. Write a short brief in 3 sections:\n1. WHAT HAPPENED — 2-3 sentences, no jargon\n2. WHAT IT MEANS RIGHT NOW — 2 sentences, immediate impact for everyday UK people\n3. WHAT IT COULD MEAN SOON — 2 sentences, next few weeks/months\n\nUnder 150 words total. Warm and conversational. Respond ONLY in this JSON format with no other text:\n{"what":"...","now":"...","future":"..."}\n\nHeadline: "' + story.title + '"';
-      var raw = await callClaude([{ role:'user', content: prompt }], 500);
-      brief = JSON.parse(raw.replace(/```json|```/g,''));
-    }
-    briefCount++;
-    document.getElementById('m-briefs').textContent = briefCount;
-    briefDiv.innerHTML =
-      '<div class="brief-body">' +
-        '<div class="brief-section"><div class="brief-section-label">What happened</div><div class="brief-section-text">' + brief.what + '</div></div>' +
-        '<div class="brief-section"><div class="brief-section-label">What it means right now</div><div class="brief-section-text">' + brief.now + '</div></div>' +
-        '<div class="brief-section"><div class="brief-section-label">What it could mean soon</div><div class="brief-section-text">' + brief.future + '</div></div>' +
-      '</div>' +
-      '<div class="btn-row"><button onclick="copyBrief(\'' + uid + '\',this)">Copy brief</button></div>';
-  } catch(e) {
-    briefDiv.innerHTML = '<div class="err-line">Couldn\'t write the brief — ' + e.message + '</div>';
-  }
+    '<div id="thread-output-' + uid + '" style="display:none;"></div>';
 }
 
 async function regenTweet(btn, uid) {
@@ -342,30 +321,102 @@ async function regenTweet(btn, uid) {
   btn.disabled = false; btn.textContent = 'Try another \u2197';
 }
 
+// ── Story thread (single story expanded into a thread) ────────────────────
+async function generateStoryThread(btn, uid) {
+  var story = _stories[uid];
+  if (!story) return;
+  var mainTweet = document.getElementById(uid).textContent;
+  var outputDiv = document.getElementById('thread-output-' + uid);
+  outputDiv.style.display = '';
+  outputDiv.innerHTML = '<div class="story-thread"><div class="loading-line">Writing your thread...</div></div>';
+  btn.disabled = true; btn.textContent = 'Writing thread...';
+
+  try {
+    var followUpTweets;
+    var demoIdx = DEMO_STORIES.findIndex(function(s) { return s.title === story.title; });
+
+    if (isDemo) {
+      await new Promise(function(r) { setTimeout(r, 1400); });
+      followUpTweets = DEMO_THREADS[Math.max(demoIdx, 0)];
+    } else {
+      var prompt =
+        'You write Twitter threads for "The Digest" — a UK account explaining FT financial news in plain English.\n\n' +
+        'The opening tweet has already been written:\n"' + mainTweet + '"\n\n' +
+        'Now write exactly 3 follow-up tweets that tell the full story — enough detail that someone doesn\'t need to read the original article. ' +
+        'Plain everyday English, warm and conversational. No jargon. Each tweet under 260 characters and numbered 2/, 3/, 4/.\n\n' +
+        'Structure:\n' +
+        '- 2/: What actually happened (a bit more detail)\n' +
+        '- 3/: Why it matters to UK people right now\n' +
+        '- 4/: What to watch for next — end this one with "ft.com" as the source\n\n' +
+        'No other URLs. Respond ONLY in this exact JSON format:\n' +
+        '{"tweets":["2/ ...","3/ ...","4/ ..."]}';
+
+      var raw = await callClaude([{ role:'user', content: prompt }], 700);
+      var parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
+      followUpTweets = parsed.tweets;
+    }
+
+    // Full thread = opening tweet + follow-ups
+    var allTweets = ['1/ ' + mainTweet].concat(followUpTweets);
+    _storyThreads[uid] = allTweets.join('\n\n');
+
+    threadCount++;
+    document.getElementById('m-threads').textContent = threadCount;
+
+    // Render
+    var html =
+      '<div class="story-thread">' +
+        '<div class="story-thread-header">Your thread &nbsp;\u00B7&nbsp; ' + allTweets.length + ' tweets</div>' +
+        '<div class="thread-copy-all-row">' +
+          '<button class="btn-primary" onclick="copyStoryThread(\'' + uid + '\',this)">Copy full thread</button>' +
+          '<span class="note">Ready to paste into X/Twitter</span>' +
+        '</div>';
+
+    allTweets.forEach(function(t, i) {
+      var isLast = i === allTweets.length - 1;
+      var display = t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      html +=
+        '<div class="tweet-body" style="margin-bottom:6px;position:relative;">' +
+          display +
+          '<div style="margin-top:8px;">' +
+            '<button class="thread-copy-btn" onclick="copyStoryTweet(\'' + uid + '\',' + i + ',this)">Copy</button>' +
+          '</div>' +
+        '</div>';
+    });
+
+    html += '</div>';
+    outputDiv.innerHTML = html;
+
+  } catch(e) {
+    outputDiv.innerHTML = '<div class="story-thread"><div class="err-line">Couldn\'t write the thread — ' + e.message + '</div></div>';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Regenerate thread \u2197';
+}
+
+function copyStoryThread(uid, btn) {
+  if (_storyThreads[uid]) copyText(_storyThreads[uid], btn, 'Copy full thread');
+}
+function copyStoryTweet(uid, idx, btn) {
+  if (!_storyThreads[uid]) return;
+  var parts = _storyThreads[uid].split('\n\n');
+  if (parts[idx] !== undefined) copyText(parts[idx], btn, 'Copy');
+}
+
 function copyText(text, btn, label) {
   navigator.clipboard.writeText(text).then(function() {
     btn.textContent = 'Copied!';
     setTimeout(function() { btn.textContent = label; }, 2000);
   });
 }
-function copyBrief(uid, btn) {
-  var sections = document.getElementById('brief-content-' + uid).querySelectorAll('.brief-section');
-  var text = '';
-  sections.forEach(function(s) {
-    text += s.querySelector('.brief-section-label').textContent.toUpperCase() + '\n' +
-            s.querySelector('.brief-section-text').textContent + '\n\n';
-  });
-  copyText(text.trim(), btn, 'Copy brief');
-}
 
-// ── Thread Digest ─────────────────────────────────────────────────────────
-
+// ── Thread Digest (multi-story scheduled digest) ───────────────────────────
 function getUKHour() {
   var now = new Date();
   var h = parseInt(now.toLocaleString('en-US', { timeZone: 'Europe/London', hour: 'numeric', hour12: false }));
   return isNaN(h) ? now.getHours() : h;
 }
-
 function getDigestLabel() {
   var h = getUKHour();
   if (h < 8)  return 'Morning Digest';
@@ -373,7 +424,6 @@ function getDigestLabel() {
   if (h < 15) return 'Lunchtime Digest';
   return 'Evening Digest';
 }
-
 function updateDigestTimeslot() {
   var el = document.getElementById('digest-timeslot');
   if (!el) return;
@@ -385,11 +435,10 @@ function updateDigestTimeslot() {
   el.textContent = 'Scheduled slots: 6am \u00B7 10:30am \u00B7 1pm \u00B7 5:30pm (UK time) \u00B7 Next: ' + next;
 }
 
-// Deduplication — localStorage, 24-hour window
 function getDigestHistory() {
   try {
     var items = JSON.parse(localStorage.getItem('digest_history') || '[]');
-    var cutoff = Date.now() - 86400000; // 24h
+    var cutoff = Date.now() - 86400000;
     return items.filter(function(i) { return i.ts > cutoff; });
   } catch(e) { return []; }
 }
@@ -397,13 +446,11 @@ function addToDigestHistory(titles) {
   var existing = getDigestHistory();
   var now = Date.now();
   titles.forEach(function(title) {
-    if (!existing.find(function(e) { return e.title === title; })) {
+    if (!existing.find(function(e) { return e.title === title; }))
       existing.push({ title: title, ts: now });
-    }
   });
   try { localStorage.setItem('digest_history', JSON.stringify(existing)); } catch(e) {}
 }
-
 function copyDigestThread(btn) {
   if (_digestThread) copyText(_digestThread, btn, 'Copy full thread');
 }
@@ -430,7 +477,6 @@ async function generateDigest() {
       stories = data.stories;
     }
 
-    // Remove stories already covered in the last 24h
     var usedTitles = getDigestHistory().map(function(h) { return h.title; });
     var freshStories = stories.filter(function(s) { return !usedTitles.includes(s.title); });
 
@@ -444,23 +490,20 @@ async function generateDigest() {
     var dateStr = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
     var selectedTitles = [];
     var tweets = [];
-
-    // storyUrls tracks the URL for each selected tweet (parallel array to tweets)
     var storyUrls = [];
 
     if (isDemo) {
       await new Promise(function(r) { setTimeout(r, 1400); });
-      // Demo: take up to 4 fresh stories
       freshStories.slice(0, 4).forEach(function(s) {
         var idx = DEMO_STORIES.findIndex(function(d) { return d.title === s.title; });
         tweets.push(DEMO_TWEETS[Math.max(idx, 0)]);
-        storyUrls.push(s.url || 'https://ft.com');
+        storyUrls.push('ft.com');
         selectedTitles.push(s.title);
       });
     } else {
       container.innerHTML = '<div class="loading-line">Claude is reading the headlines and picking what matters most...</div>';
       var headlineList = freshStories.map(function(s, i) {
-        return (i + 1) + '. [' + s.tag + '] ' + s.title + ' | url: ' + (s.url || 'https://ft.com');
+        return (i + 1) + '. [' + s.tag + '] ' + s.title;
       }).join('\n');
 
       var selectionPrompt =
@@ -469,55 +512,44 @@ async function generateDigest() {
         'Task: Select only the stories that genuinely matter to a UK audience — things that affect their money, jobs, cost of living, or the wider economy. ' +
         'Ignore minor corporate news, incremental updates, niche sector stories, or anything that won\'t meaningfully change how people think about their finances. ' +
         'Be selective — if only 2 or 3 stories truly matter, pick just those. Maximum 6.\n\n' +
-        'For each story you select, write a tweet in plain everyday English — warm and conversational, like texting a smart mate. Under 220 characters (NOT including the URL, which will be appended separately). No jargon. Do NOT include any URL in the tweet text.\n\n' +
+        'For each story you select, write a tweet in plain everyday English — warm and conversational, like texting a smart mate. Under 240 characters. No jargon. End with ft.com.\n\n' +
         'Respond ONLY in this exact JSON format:\n' +
-        '{"selected":[{"title":"exact original headline","url":"url from the headline list","tweet":"tweet text with no url"}]}';
+        '{"selected":[{"title":"exact original headline","tweet":"tweet text"}]}';
 
       var raw = await callClaude([{ role:'user', content: selectionPrompt }], 1500);
       var parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
       parsed.selected.forEach(function(s) {
         tweets.push(s.tweet);
-        // Use URL Claude returned, or fall back to matching from freshStories by title
-        var matched = freshStories.find(function(f) { return f.title === s.title; });
-        storyUrls.push(s.url || (matched && matched.url) || 'https://ft.com');
+        storyUrls.push('ft.com');
         selectedTitles.push(s.title);
       });
     }
 
-    // Build thread array — append real URL to each story tweet
     var headerTweet = '\uD83D\uDDDE\uFE0F FT ' + label + ' \u00B7 ' + dateStr + '\n\nHere\u2019s what\u2019s actually worth knowing right now \uD83E\uDDF5';
     var footerTweet = 'Follow @TheDigestFT for the next update.';
     var threadTweets = [headerTweet]
-      .concat(tweets.map(function(t, i) { return (i + 1) + '/ ' + t + '\n\n' + storyUrls[i]; }))
+      .concat(tweets.map(function(t, i) { return (i + 1) + '/ ' + t; }))
       .concat([footerTweet]);
 
     _digestThread = threadTweets.join('\n\n');
-
-    // Persist to history
     addToDigestHistory(selectedTitles);
 
-    // Render cards
     var html =
       '<div class="digest-copy-all">' +
         '<button class="btn-primary" onclick="copyDigestThread(this)">Copy full thread</button>' +
-        '<span class="note">' + tweets.length + ' stor' + (tweets.length === 1 ? 'y' : 'ies') + ' selected &nbsp;\u00B7&nbsp; ' + threadTweets.length + ' tweets total</span>' +
+        '<span class="note">' + tweets.length + ' stor' + (tweets.length === 1 ? 'y' : 'ies') + ' \u00B7 ' + threadTweets.length + ' tweets total</span>' +
       '</div>';
 
     threadTweets.forEach(function(t, i) {
       var isHeader = i === 0;
       var isFooter = i === threadTweets.length - 1;
-      var cardLabel = isHeader ? 'Thread opener'
-                    : isFooter ? 'Thread closer'
-                    : 'Tweet ' + i + ' of ' + tweets.length;
-      // Safely encode text for display (no eval risk, just html-escape)
-      var displayText = t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      var cardLabel = isHeader ? 'Thread opener' : isFooter ? 'Thread closer' : 'Tweet ' + i + ' of ' + tweets.length;
+      var display = t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
       html +=
         '<div class="thread-card">' +
           '<div class="thread-card-header">' + cardLabel + '</div>' +
-          '<div class="thread-tweet-text">' + displayText + '</div>' +
-          '<div class="thread-copy-row">' +
-            '<button onclick="copyThreadTweet(' + i + ',this)">Copy</button>' +
-          '</div>' +
+          '<div class="thread-tweet-text">' + display + '</div>' +
+          '<div class="thread-copy-row"><button onclick="copyThreadTweet(' + i + ',this)">Copy</button></div>' +
         '</div>';
     });
 
@@ -554,7 +586,7 @@ function renderCharts() {
   if (cChart) cChart.destroy();
   cChart = new Chart(document.getElementById('chart-content'), {
     type:'bar',
-    data:{ labels:['Tweets','Briefs'], datasets:[{ data:[tweetCount,briefCount], backgroundColor:['#185FA5','#1D9E75'], borderRadius:4, borderWidth:0 }] },
+    data:{ labels:['Tweets','Threads'], datasets:[{ data:[tweetCount,threadCount], backgroundColor:['#185FA5','#1D9E75'], borderRadius:4, borderWidth:0 }] },
     options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true,ticks:{stepSize:1}}, x:{grid:{display:false}} } }
   });
 }
