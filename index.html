@@ -38,7 +38,9 @@ button:disabled { opacity: 0.4; cursor: default; }
 .metric-val { font-size: 24px; font-weight: 600; color: #1a1a1a; }
 .metric-label { font-size: 11px; color: #999; margin-top: 3px; }
 .story-card { background: #fff; border: 1px solid #e5e5e0; border-radius: 12px; padding: 1.25rem; margin-bottom: 12px; }
-.story-tag { font-size: 11px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+.story-tag-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.story-tag { font-size: 11px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.06em; }
+.story-source { font-size: 11px; color: #bbb; }
 .story-headline { font-size: 15px; font-weight: 500; color: #1a1a1a; margin-bottom: 14px; line-height: 1.5; }
 .tweet-body { background: #f9f9f7; border: 1px solid #efefed; border-radius: 8px; padding: 12px 14px; font-size: 14px; color: #1a1a1a; line-height: 1.6; margin-bottom: 8px; }
 .char-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
@@ -391,7 +393,7 @@ async function fetchStories() {
     for (const s of batch) {
       const card = document.createElement('div');
       card.className = 'story-card';
-      card.innerHTML = '<div class="story-tag">' + s.tag + '</div><div class="story-headline">' + s.title + '</div><div class="loading-line">Your mate\'s reading this one...</div>';
+      card.innerHTML = '<div class="story-tag-row"><span class="story-tag">' + s.tag + '</span><span class="story-source">' + (s.source || 'FT') + '</span></div><div class="story-headline">' + s.title + '</div><div class="loading-line">Your mate\'s reading this one...</div>';
       feed.prepend(card);
       await genTweet(s, card, false);
     }
@@ -441,7 +443,7 @@ function renderCard(story, card, tweet) {
   var chars = tweet.length;
   _stories[uid] = story;
   card.innerHTML =
-    '<div class="story-tag">' + story.tag + '</div>' +
+    '<div class="story-tag-row"><span class="story-tag">' + story.tag + '</span><span class="story-source">' + (story.source || 'FT') + '</span></div>' +
     '<div class="story-headline">' + story.title + '</div>' +
     '<div class="tweet-body" id="' + uid + '">' + tweet + '</div>' +
     '<div class="char-row">' +
